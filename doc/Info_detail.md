@@ -9,10 +9,10 @@
 ### 车次类
 一个车次内部信息有：trainID,stationNum,station(char*数组)，seatNum，prices(int 数组),startetime,traveltime(数组)，stopoverTimes(数组)，saleDate，Type。
 
-###车站类
+### 车站类
 成员为车站名称并 记录经过该站的车次信息。
 
-###日期类
+### 日期类
 三个数字：年，月，日。自定义加减法。
 
 
