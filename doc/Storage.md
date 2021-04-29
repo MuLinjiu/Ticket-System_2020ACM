@@ -18,7 +18,9 @@
 
 `fstream file`
 
-`int get_pos(int num)`: `return (sizeof(int) + sizeof(T)) * (num - 1) + sizeof(int);`
+`int get_pos(int num)`: `return (sizeof(int) + sizeof(Value)) * (num - 1) + sizeof(int);`
+
+`int get_num(int pos)`: `return (pos - sizeof(int)) / (sizeof(int) + sizeof(Value)) + 1;`
 
 #### 构造函数
 
@@ -32,8 +34,8 @@
 
 #### 接口
 
-* `int write(const T& value)`: 在文件中找到空位置写入，更新头指针，返回空位置的编号
-* `void read(int num, T& value)`: 找到第`num`条数据读入`value`
+* `int write(const Value& val)`: 在文件中找到空位置写入，更新头指针，返回空位置的编号
+* `void read(int num, Value& val)`: 找到第`num`条数据读入`val`
 * `void delete(int num)`: 释放第`num`条数据的空间，头指针指向该空间起始位置
 
 
@@ -75,4 +77,12 @@
 * 插入数据`void insert(Key key, Value val)`: 在数据文件中添加一条数据，把索引按照`key`插入树中（注意调用函数之后判断根节点是否要分裂）
 * 删除数据`void delete(Key key)`: 在树中按照`key`找到索引，在数据文件中删除
 * 查找数据`vector<Value> search(Key key, bool (*equ)(Key, Key))`:  在树中找到`key`相同的所有数据，相等的含义用函数指针`*equ`描述
+
+
+
+## 文件命名
+
+* 保存B+树节点信息的文件：`bpt_`+`file_name`+`_node`+`.dat`
+* 保存B+树总体基本信息的文件： `bpt_`+`file_name`+`_basic`+`.dat`
+* 保存`Value`类型原始数据的文件： `data_`+`file_name`+`.dat`
 
