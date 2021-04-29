@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <string>
+using namespace std;
 
 template<class Value>
 class Storage_IO{
@@ -13,7 +14,7 @@ private:
 		return (sizeof(int) + sizeof(Value)) * (num - 1) + sizeof(int);
 	}
 
-	void get_num(int pos){
+	int get_num(int pos){
 		return (pos - sizeof(int)) / (sizeof(int) + sizeof(Value)) + 1;
 	}
 
@@ -22,32 +23,35 @@ public:
 
 	Storage_IO(string file_name){
 		file.open(file_name, ios::in | ios::out | ios::binary);
-		if (!file){
-			file.open(file_name, ios::out);
-			int zero = 0;
-			file.write(reinterpret_cast<char *> (&zero), sizeof(int));
-			file.close();
-			file.open(file_name, ios::in | ios::out | ios::binary);
+			if (!file){
+				file.open(file_name, ios::out);
+				int zero = 0;
+				file.write(reinterpret_cast<char *> (&zero), sizeof(int));
+				file.close();
+				file.open(file_name, ios::in | ios::out | ios::binary);
 		}
 	}
 
 	~Storage_IO(){ file.close(); }
 
-	int write(const Value& val){
+	int write(Value &val){
 		file.seekg(0);
 		int nxt = 0, pos, num;
 		file.read(reinterpret_cast<char *> (&nxt), sizeof(int));
 		if (!nxt){
-			pos = ios::end, num = get_num(pos);
+			file.seekp(0, ios::end);
+			pos = file.tellp(), num = get_num(pos);
+			file.write(reinterpret_cast<char *> (&val), sizeof(Value));
+			file.write(reinterpret_cast<char *> (&nxt), sizeof(int));
 		} else {
 			num = nxt, pos = get_pos(num);
 			file.seekg(pos + sizeof(Value));
 			file.read(reinterpret_cast<char *> (&nxt), sizeof(int));
 			file.seekp(0);
 			file.write(reinterpret_cast<char *> (&nxt), sizeof(int));
+			file.seekp(pos);
+			file.write(reinterpret_cast<char *> (&val), sizeof(Value));
 		}
-		file.seekp(pos);
-		file.write(reinterpret_cast<char *> (&val), sizeof(Value));
 		return num;
 	}
 
@@ -56,7 +60,7 @@ public:
 		file.read(reinterpret_cast<char *> (&val), sizeof(Value));
 	}
 
-	void delete(int num){
+	void del(int num){
 		int pos = get_pos(num), nxt;
 		file.seekg(0);
 		file.read(reinterpret_cast<char *> (&nxt), sizeof(int));

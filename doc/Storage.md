@@ -34,9 +34,9 @@
 
 #### 接口
 
-* `int write(const Value& val)`: 在文件中找到空位置写入，更新头指针，返回空位置的编号
+* `int write(Value& val)`: 在文件中找到空位置写入，更新头指针，返回空位置的编号
 * `void read(int num, Value& val)`: 找到第`num`条数据读入`val`
-* `void delete(int num)`: 释放第`num`条数据的空间，头指针指向该空间起始位置
+* `void del(int num)`: 释放第`num`条数据的空间，头指针指向该空间起始位置
 
 
 
