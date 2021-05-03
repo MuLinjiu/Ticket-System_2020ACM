@@ -35,10 +35,9 @@
 #### 接口
 
 * `int write(const Value& val)`: 在文件中找到空位置写入，更新头指针，返回空位置的编号
-* `void write(int num, const Value &)`
-* 
-* `void read(int num, const Value val)`: 找到第`num`条数据读入`val`
-* `void del(int num)`: 释放第`num`条数据的空间，头指针指向该空间起始位置
+* `void write(int num, const Value &val)`: 将`val`写入第`num`条数据
+* `void read(int num, Value &val)`: 找到第`num`条数据读入`val`
+* `void erase(int num)`: 释放第`num`条数据的空间，头指针指向该空间起始位置
 
 
 
@@ -71,14 +70,14 @@
 #### 内部实现
 
 * 节点分裂`int split(int child, node &y)`:  将编号为`child`的节点`y`分裂，返回分裂后新增节点的编号
-
+* 节点合并`void merge(int current, node &x, int child, node &y, int neighbor, node &z, int ptr)`: 将编号为`neighbor`的兄弟节点`z`并入编号为`child`的节点`y`，保证`neighbor`在`child`之后
 * 插入数据`void insert(int current, const Key &key, int index)`: 递归找到对应叶节点，返回时判断孩子节点是否需要分裂
-* 删除数据`void delete(int current, const Key &key)`: 递归找到对应叶节点，返回时判断孩子是否不满足要求。如果不满足要求，如果不是第一个键值，就往前找兄弟，否则往后找兄弟。如果兄弟借不到键值，就合并。
+* 删除数据`pair<bool, Key> erase(int current, const Key &key)`: 递归找到对应叶节点，返回时判断孩子是否不满足要求。如果不满足要求，如果是最后一个键值，就往前找兄弟，否则往后找兄弟。如果兄弟借不到键值，就合并。如果`child`是第一个子树，就返回`true` 和需要往上修改成的键值，直到不是第一个子树，修改之后，返回`false`
 * 查找数据`node search(int current, const Key &key)`: 以键值搜索返回对应的叶节点内容，如果查找失败返回`0`
 
 #### 接口
 * 插入数据`void insert(const Key &key, const Value &val)`: 在数据文件中添加一条数据，把索引按照`key`插入树中（注意调用函数之后判断根节点是否要分裂）
-* 删除数据`void delete(const Key &key)`: 在树中按照`key`找到索引，在数据文件中删除
+* 删除数据`void erase(const Key &key)`: 在树中按照`key`找到索引，在数据文件中删除
 * 查找数据`vector<Value> search(const Key &key, bool (*equ)(Key, Key))`:  在树中找到`key`相同的所有数据，相等的含义用函数指针`*equ`描述
 
 

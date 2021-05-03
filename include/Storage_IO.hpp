@@ -23,12 +23,12 @@ public:
 
 	Storage_IO(string file_name){
 		file.open(file_name, ios::in | ios::out | ios::binary);
-			if (!file){
-				file.open(file_name, ios::out | ios::binary);
-				int zero = 0;
-				file.write(reinterpret_cast<char *> (&zero), sizeof(int));
-				file.close();
-				file.open(file_name, ios::in | ios::out | ios::binary);
+		if (!file){
+			file.open(file_name, ios::out | ios::binary);
+			int zero = 0;
+			file.write(reinterpret_cast<char *> (&zero), sizeof(int));
+			file.close();
+			file.open(file_name, ios::in | ios::out | ios::binary);
 		}
 	}
 
@@ -60,12 +60,12 @@ public:
 		file.write(reinterpret_cast<char *> (const_cast<Value *> (&val)), sizeof(Value));
 	}
 
-	void read(int num, const Value &val){
+	void read(int num, Value &val){
 		file.seekg(get_pos(num));
-		file.read(reinterpret_cast<char *> (const_cast<Value *> (&val)), sizeof(Value));
+		file.read(reinterpret_cast<char *> (&val), sizeof(Value));
 	}
 
-	void del(int num){
+	void erase(int num){
 		int pos = get_pos(num), nxt;
 		file.seekg(0);
 		file.read(reinterpret_cast<char *> (&nxt), sizeof(int));
