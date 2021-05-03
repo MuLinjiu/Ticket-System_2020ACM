@@ -11,7 +11,7 @@ using namespace sjtu;
 template<class Key, class Value>
 class BpTree{
 private:
-	static const int M = 5; // Maximum number of fans out
+	static const int M = 300; // Maximum number of fans out
 	struct node{
 		int num_keys; // 1-based
 		bool is_leaf;
