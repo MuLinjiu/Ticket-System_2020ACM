@@ -225,10 +225,12 @@ public:
 
 	~BpTree(){ bpt_basic_file.close(); }
 
-	void insert(const Key &key, const Value &val){
+	bool insert(const Key &key, const Value &val){
+		node x = search(root, key), y;
+		int ptr = lower_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
+		if (ptr < x.num_keys && x.keys[ptr] == key) return false;
 		int index = data_file.write(val);
 		insert(root, key, index);
-		node x, y;
 		bpt_node_file.read(root, x);
 		if (x.is_leaf && x.num_keys > M || !x.is_leaf && x.num_keys >= M){
 			int new_child = split(root, x);
@@ -239,12 +241,13 @@ public:
 			bpt_basic_file.seekp(0);
 			bpt_basic_file.write(reinterpret_cast<char *> (&root), sizeof(int));
 		}
+		return true;
 	}
 
 	bool erase(const Key &key){
 		node x = search(root, key);
 		int ptr = lower_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
-		if (x.keys[ptr] != key) return false;
+		if (ptr >= x.num_keys || x.keys[ptr] != key) return false;
 		erase(root, key);
 		bpt_node_file.read(root, x);
 		if (!x.num_keys && !x.is_leaf){

@@ -76,8 +76,8 @@
 * 查找数据`node search(int current, const Key &key)`: 以键值搜索返回对应的叶节点内容，如果查找失败返回`0`
 
 #### 接口
-* 插入数据`void insert(const Key &key, const Value &val)`: 在数据文件中添加一条数据，把索引按照`key`插入树中（注意调用函数之后判断根节点是否要分裂）
-* 删除数据`void erase(const Key &key)`: 在树中按照`key`找到索引，在数据文件中删除
+* 插入数据`bool insert(const Key &key, const Value &val)`: 在数据文件中添加一条数据，把索引按照`key`插入树中（注意调用函数之后判断根节点是否要分裂），如果`key`存在返回`false`
+* 删除数据`bool erase(const Key &key)`: 在树中按照`key`找到索引，在数据文件中删除，如果`key`不存在返回`false`
 * 查找数据`vector<Value> search(const Key &key, bool (*equ)(Key, Key))`:  在树中找到`key`相同的所有数据，相等的含义用函数指针`*equ`描述
 
 
