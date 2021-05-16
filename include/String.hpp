@@ -3,7 +3,6 @@
 
 #include <string>
 
-template<int Size = 35>
 class String{
 	friend istream &operator >>(istream &is, String &x){
 		is >> x.str;
@@ -17,7 +16,7 @@ class String{
 	}
 
 private:
-	char str[Size+1];
+	char str[36];
 
 public:
 	String() { str[0] = '\0'; }
@@ -55,7 +54,7 @@ public:
 	}
 
 	String operator+(const String &other){
-		char ret[Size+1];
+		char ret[36];
 		ret[0] = '\0';
 		strcat(ret, str), strcat(ret, other.str);
 		return String(ret);
@@ -80,7 +79,7 @@ public:
 		const char *i = str, *j = other.str;
 		for (; *i && *j; ++i, ++j)
 			if (*i != *j) return *i < *j;
-		return !*i;
+		return !*i && *j;
 	}
 
 	bool operator<=(const String &other) const{
@@ -94,6 +93,14 @@ public:
 	bool operator>=(const String &other) const{
 		return *this > other || *this == other;
 	}
+
+	char &operator[](int offset){ return str[offset]; }
+
+    const char &operator[](int offset) const{ return str[offset]; }
+
+    bool empty() const{ return !*str; }
+
+	void clear(){ str[0] = '\0'; }
 };
 
 #endif //TICKET_SYSTEM_2020ACM_STRING_HPP

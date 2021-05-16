@@ -1,14 +1,9 @@
-//
-// Created by 18382 on 2021/5/14.
-//
-
 #ifndef MAP_HPP_RUN_HPP
 #define MAP_HPP_RUN_HPP
 #include "String.hpp"
 extern USER_ALL user_all;
-bool firstuser = true;
 void run_program(){
-    String<> command;
+    String command;
     cin >> command;
     if(command == "add_user"){
         fstream f;
@@ -18,64 +13,86 @@ void run_program(){
         f.close();
         try{
             if(x != sizeof (int)) {
-                cout << firstuser << endl;
-                String<> a;
-                cin >> a;
-                if (a != "-c")throw ("e");
-                String<> cur_username;
-                cin >> cur_username;
-                cin >> a;
-                if (a != "-u")throw ("e");
-                String<> username;
-                cin >> username;
-                cin >> a;
-                if (a != "-p")throw ("e");
-                String<> password;
-                cin >> password;
-                cin >> a;
-                if (a != "-n")throw ("e");
-                String<> name;
-                cin >> name;
-                cin >> a;
-                if (a != "-m")throw ("e");
-                String<> add;
-                cin >> add;
-                cin >> a;
-                if (a != "-g")throw ("e");
+                String a;
+                String cur_username;
+                String username;
+                String password;
+                String name;
+                String add;
                 int p;
-                cin >> p;
-                if (!user_all.checkadduser(cur_username, username)) {
+                while(getchar() == ' '){
+                    cin >> a;
+                    switch(a[1]){
+                        case 'c':{
+                            cin >> cur_username;
+                            break;
+                        }
+                        case 'u':{
+                            cin >> username;
+                            break;
+                        }
+                        case 'p':{
+                            cin >> password;
+                            break;
+                        }
+                        case 'n':{
+                            cin >> name;
+                            break;
+                        }
+                        case 'm':{
+                            cin >> add;
+                            break;
+                        }
+                        case 'g':{
+                            cin >> p;
+                            break;
+                        }
+                        default:throw("e");
+                    }
+                }
+                if (!user_all.checkadduser(cur_username, username,p)) {
                     throw "e";
                 }
                 user_all.add_user(username, password, name, add, p);
             }else{
-                String<> a;
-                cin >> a;
-                if (a != "-c")throw ("e");
-                String<> cur_username;
-                cin >> cur_username;
-                cin >> a;
-                if (a != "-u")throw ("e");
-                String<> username;
-                cin >> username;
-                cin >> a;
-                if (a != "-p")throw ("e");
-                String<> password;
-                cin >> password;
-                cin >> a;
-                if (a != "-n")throw ("e");
-                String<> name;
-                cin >> name;
-                cin >> a;
-                if (a != "-m")throw ("e");
-                String<> add;
-                cin >> add;
-                cin >> a;
-                if (a != "-g")throw ("e");
+                String a;
+                String cur_username;
+                String username;
+                String password;
+                String name;
+                String add;
                 int p;
-                cin >> p;
+                while(getchar() == ' '){
+                    cin >> a;
+                    switch(a[1]){
+                        case 'c':{
+                            cin >> cur_username;
+                            break;
+                        }
+                        case 'u':{
+                            cin >> username;
+                            break;
+                        }
+                        case 'p':{
+                            cin >> password;
+                            break;
+                        }
+                        case 'n':{
+                            cin >> name;
+                            break;
+                        }
+                        case 'm':{
+                            cin >> add;
+                            break;
+                        }
+                        case 'g':{
+                            cin >> p;
+                            break;
+                        }
+                        default:throw("e");
+                    }
+                }
                 user_all.add_user(username, password, name, add, 10);
-                firstuser = false;
             }
         }catch (...){
             cout << -1 << endl;
@@ -85,12 +102,12 @@ void run_program(){
         return;
     }
     if(command == "login"){
-        String<> a;
+        String a;
         cin >> a;
-        String<> username;
+        String username;
         cin >> username;
         cin >> a;
-        String<> pass;
+        String pass;
         cin >> pass;
         try{
             user_all.login(username,pass);
@@ -102,7 +119,7 @@ void run_program(){
         return;
     }
     if(command == "logout"){
-        String<> a,username;
+        String a,username;
         cin >> a >> username;
         try{
             user_all.logout(username);
@@ -113,12 +130,12 @@ void run_program(){
         return;
     }
     if(command == "query_profile"){
-        String<> a,username,cur;
+        String a,username,cur;
         cin >> a >> cur >> a >> username;
         try{
             if(user_all.checkquerypofile(cur,username)){
                 user_all.query_pofile(username);
-            }
+            } else cout << -1 << endl;
         }catch (...){
             cout << -1 << endl;
             return;
@@ -126,8 +143,51 @@ void run_program(){
         return;
     }
     if(command == "modify_profile"){
+        String a,cur_username,username,password,name,add;
+        int p = 0;
+        while(getchar() == ' '){
+            cin >> a;
+            switch(a[1]){
+                case 'c':{
+                    cin >> cur_username;
+                    break;
+                }
+                case 'u':{
+                    cin >> username;
+                    break;
+                }
+                case 'p':{
+                    cin >> password;
+                    break;
+                }
+                case 'n':{
+                    cin >> name;
+                    break;
+                }
+                case 'm':{
+                    cin >> add;
+                    break;
+                }
+                case 'g':{
+                    cin >> p;
+                    break;
+                }
+                default:throw("e");
+            }
+        }
+        try {
+            if (user_all.checkmodifypofile(cur_username, username, p)){
+                user_all.modify_profile(username,password,name,add,p);
+            }else throw("e");
+        }catch (...){
+            cout << -1 << endl;
+            return;
 
+        }
     }
-    if(command == "exit")exit(0);
+    if(command == "exit"){
+        cout << "bye" << endl;
+        exit(0);
+    }
 }
 #endif //MAP_HPP_RUN_HPP
