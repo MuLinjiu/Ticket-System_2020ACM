@@ -7,30 +7,28 @@
 #include <cstring>
 #include <iostream>
 #include "BpTree.hpp"
+#include "String.hpp"
 using namespace std;
 using namespace sjtu;
 class USER_ALL{
 
     struct user{
-        char username[25] = "";
-        char password[35] = "";
-        char name[20] = "";
-        char address[35] = "";
+        String<> username;
+        String<> password;
+        String<> name;
+        String<> address;
         int privilege = -1;
-        user(const string & u, const string & pa, const string & n,const string & add, int p) {
-            strcpy(username,u.c_str());
-            strcpy(password,pa.c_str());
-            strcpy(name,n.c_str());
-            strcpy(address,add.c_str());
+        user(const String<> & u, const String<> & pa, const String<> & n,const String<> & add, int p) {
+            username = u;
             privilege = p;
         }
         user() = default;
     };
-    BpTree<string,user> user_tree;
-    map<string,user>user_online;
+    BpTree<String<>,user> user_tree;
+    map<String<>,user>user_online;
 public:
     USER_ALL() : user_tree("user") {}
-    bool checkadduser(const string &cur,const string &us){
+    bool checkadduser(const String<> &cur,const String<> &us){
         vector<user>possibleoffset = user_tree.search(cur);
         vector<user>possibleoffset2 = user_tree.search(us);
         if(possibleoffset.empty() || possibleoffset2.empty())return false;
@@ -38,7 +36,7 @@ public:
         if(possibleoffset[0].privilege <= possibleoffset2[0].privilege)return false;
         else return true;
     }
-    bool checkquerypofile(const string &cur,const string &us){
+    bool checkquerypofile(const String<> &cur,const String<> &us){
         vector<user>possibleoffset = user_tree.search(cur);
         vector<user>possibleoffset2 = user_tree.search(us);
         if(user_online.find(cur) == user_online.end())return false;
@@ -46,13 +44,13 @@ public:
         if(possibleoffset[0].privilege < possibleoffset2[0].privilege)return false;
         else return true;
     }
-    void add_user(const string & u, const string & pa, const string & n,const string & add, int p){
+    void add_user(const String<> & u, const String<> & pa, const String<> & n,const String<> & add, int p){
         user tmp(u,pa,n,add,p);
         if(!user_tree.insert(u,tmp)){
             throw("invalid_insert");
         }
     }
-    void login(const string & userna, const string & pas){
+    void login(const String<> & userna, const String<> & pas){
         vector<user>possibleoffset = user_tree.search(userna);
         if(possibleoffset.empty()){
             throw("cannot find the user");
@@ -64,19 +62,19 @@ public:
             }
         }
     }
-    void logout(const string & usn){
+    void logout(const String<> & usn){
         if(user_online.find(usn) == user_online.end())throw("user haven't login");
         else user_online.erase(user_online.find(usn));
     }
 
-    void query_pofile(const string & a){
+    void query_pofile(const String<> & a){
         vector<user>possibleoffset = user_tree.search(a);
         if(possibleoffset.empty())throw("cannot find the user");
         else {
             cout << possibleoffset[0].username << " " << possibleoffset[0].name << " " << possibleoffset[0].address << " " << possibleoffset[0].privilege << endl;
         }
     }
-    void modify_profile(const string &opt,const string & data){
+    void modify_profile(const String<> &opt,const String<> & data){
 
     }
 };

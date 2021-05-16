@@ -4,10 +4,11 @@
 
 #ifndef MAP_HPP_RUN_HPP
 #define MAP_HPP_RUN_HPP
+#include "String.hpp"
 extern USER_ALL user_all;
 bool firstuser = true;
 void run_program(){
-    string command;
+    String<> command;
     cin >> command;
     if(command == "add_user"){
         fstream f;
@@ -18,26 +19,26 @@ void run_program(){
         try{
             if(x != sizeof (int)) {
                 cout << firstuser << endl;
-                string a;
+                String<> a;
                 cin >> a;
                 if (a != "-c")throw ("e");
-                string cur_username;
+                String<> cur_username;
                 cin >> cur_username;
                 cin >> a;
                 if (a != "-u")throw ("e");
-                string username;
+                String<> username;
                 cin >> username;
                 cin >> a;
                 if (a != "-p")throw ("e");
-                string password;
+                String<> password;
                 cin >> password;
                 cin >> a;
                 if (a != "-n")throw ("e");
-                string name;
+                String<> name;
                 cin >> name;
                 cin >> a;
                 if (a != "-m")throw ("e");
-                string add;
+                String<> add;
                 cin >> add;
                 cin >> a;
                 if (a != "-g")throw ("e");
@@ -48,26 +49,26 @@ void run_program(){
                 }
                 user_all.add_user(username, password, name, add, p);
             }else{
-                string a;
+                String<> a;
                 cin >> a;
                 if (a != "-c")throw ("e");
-                string cur_username;
+                String<> cur_username;
                 cin >> cur_username;
                 cin >> a;
                 if (a != "-u")throw ("e");
-                string username;
+                String<> username;
                 cin >> username;
                 cin >> a;
                 if (a != "-p")throw ("e");
-                string password;
+                String<> password;
                 cin >> password;
                 cin >> a;
                 if (a != "-n")throw ("e");
-                string name;
+                String<> name;
                 cin >> name;
                 cin >> a;
                 if (a != "-m")throw ("e");
-                string add;
+                String<> add;
                 cin >> add;
                 cin >> a;
                 if (a != "-g")throw ("e");
@@ -77,49 +78,49 @@ void run_program(){
                 firstuser = false;
             }
         }catch (...){
-            cout << -1;
+            cout << -1 << endl;
             return;
         }
-        cout << 0;
+        cout << 0 << endl;
         return;
     }
     if(command == "login"){
-        string a;
+        String<> a;
         cin >> a;
-        string username;
+        String<> username;
         cin >> username;
         cin >> a;
-        string pass;
+        String<> pass;
         cin >> pass;
         try{
             user_all.login(username,pass);
         }catch (...){
-            cout << -1;
+            cout << -1 << endl;
             return;
         }
-        cout << 0;
+        cout << 0 << endl;
         return;
     }
     if(command == "logout"){
-        string a,username;
+        String<> a,username;
         cin >> a >> username;
         try{
             user_all.logout(username);
         }catch (...){
-            cout << -1;
+            cout << -1 << endl;
             return;
-        }cout << 0;
+        }cout << 0 << endl;
         return;
     }
     if(command == "query_profile"){
-        string a,username,cur;
+        String<> a,username,cur;
         cin >> a >> cur >> a >> username;
         try{
             if(user_all.checkquerypofile(cur,username)){
                 user_all.query_pofile(username);
             }
         }catch (...){
-            cout << -1;
+            cout << -1 << endl;
             return;
         }
         return;

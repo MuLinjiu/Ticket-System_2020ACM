@@ -3,7 +3,7 @@
 
 #include <string>
 
-template<int Size>
+template<int Size = 35>
 class String{
 	friend istream &operator >>(istream &is, String &x){
 		is >> x.str;
