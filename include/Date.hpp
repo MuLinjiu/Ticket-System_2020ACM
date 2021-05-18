@@ -2,6 +2,7 @@
 #define TICKET_SYSTEM_2020ACM_DATE_HPP
 
 #include <iostream>
+#include "String.hpp"
 
 class Date{
 	friend ostream &operator <<(ostream &os, const Date &x){
@@ -24,7 +25,13 @@ private:
 	}
 
 public:
-	Date() : mm(6), dd(1), hr(0), mi(0) {}
+	Date() : mm(0), dd(0), hr(0), mi(0) {}
+
+	Date(const String &str) : mm(0), dd(0), hr(0), mi(0) {
+	    int x = (str[0] - '0') * 10 + (str[1] - '0'), y = (str[3] - '0') * 10 + (str[4] - '0');
+	    if (str[2] == '-') mm = x, dd = y;
+	    else hr = x, mi = y;
+	}
 
 	Date(int mm_, int dd_, int hr_, int mi_) : mm(mm_), dd(dd_), hr(hr_), mi(mi_) {}
 

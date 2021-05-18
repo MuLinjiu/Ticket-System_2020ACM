@@ -3,6 +3,7 @@
 #include "vector.hpp"
 #include "map.hpp"
 #include "User.hpp"
+#include "Train.hpp"
 #include "Run.hpp"
 #include "Date.hpp"
 using namespace std;

@@ -32,6 +32,7 @@ class USER_ALL{
 public:
 
     USER_ALL() : user_tree("user") {}
+
     bool checkadduser(const String &cur,const String &us,int p){
         vector<user>possibleoffset = user_tree.search(cur);
         vector<user>possibleoffset2 = user_tree.search(us);
@@ -40,6 +41,7 @@ public:
         if(possibleoffset[0].privilege <= p)return false;
         else return true;
     }
+
     bool checkquerypofile(const String &cur,const String &us){
         vector<user>possibleoffset = user_tree.search(cur);
         vector<user>possibleoffset2 = user_tree.search(us);
@@ -49,6 +51,7 @@ public:
         if(possibleoffset[0].privilege <= possibleoffset2[0].privilege)return false;
         else return true;
     }
+
     bool checkmodifypofile(const String &cur,const String &us,int c){
         vector<user>possibleoffset = user_tree.search(cur);
         vector<user>possibleoffset2 = user_tree.search(us);
@@ -58,12 +61,14 @@ public:
         if(possibleoffset[0].privilege <= possibleoffset2[0].privilege && possibleoffset[0].privilege <= c)return false;
         else return true;
     }
+
     void add_user(const String & u, const String & pa, const String & n,const String & add, int p){
         user tmp(u,pa,n,add,p);
         if(!user_tree.insert(u,tmp)){
             throw("invalid_insert");
         }
     }
+
     void login(const String & userna, const String & pas){
         vector<user>possibleoffset = user_tree.search(userna);
         if(possibleoffset.empty()){
@@ -78,6 +83,7 @@ public:
             }
         }
     }
+
     void logout(const String & usn){
         if(user_online.find(usn) == user_online.end())throw("user haven't login");
         else user_online.erase(user_online.find(usn));
@@ -90,6 +96,7 @@ public:
             cout << possibleoffset[0].username << " " << possibleoffset[0].name << " " << possibleoffset[0].address << " " << possibleoffset[0].privilege << endl;
         }
     }
+
     void modify_profile(const String & usern,const String & password, const String &name, const String &add, int pr){
         vector<user>possibleoffset = user_tree.search(usern);
         if(possibleoffset.empty())throw("cannot find the user");
@@ -103,5 +110,6 @@ public:
             cout << possibleoffset[0] << endl;
         }
     }
+
 };
 #endif //MAP_HPP_USER_HPP

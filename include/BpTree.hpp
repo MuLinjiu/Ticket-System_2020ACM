@@ -244,19 +244,15 @@ public:
 		return true;
 	}
 
-	bool erase(const Key &key){
-		node x = search(root, key);
-		int ptr = lower_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
-		if (ptr >= x.num_keys || x.keys[ptr] != key) return false;
+	void erase(const Key &key){
 		erase(root, key);
-		bpt_node_file.read(root, x);
+		node x; bpt_node_file.read(root, x);
 		if (!x.num_keys && !x.is_leaf){
 			bpt_node_file.erase(root);
 			root = x.birec[0].child;
 			bpt_basic_file.seekp(0);
 			bpt_basic_file.write(reinterpret_cast<char *> (&root), sizeof(int));
 		}
-		return true;
 	}
 
 	vector<Value> search(const Key &key, bool (*equ)(Key, Key) = equal){
