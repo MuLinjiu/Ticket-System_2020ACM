@@ -30,7 +30,7 @@ private:
 	Storage_IO<Value> data_file;
 	fstream bpt_basic_file;
 
-	static bool equal(Key lhs, Key rhs) { return lhs == rhs; }
+	static bool equal(const Key &lhs, const Key &rhs) { return lhs == rhs; }
 
 	Key *upper_bound(Key *begin, Key *end, Key num){
 		int l = -1, r = end - begin;
@@ -255,7 +255,7 @@ public:
 		}
 	}
 
-	vector<Value> search(const Key &key, bool (*equ)(Key, Key) = equal){
+	vector<Value> search(const Key &key, bool (*equ)(const Key &, const Key &) = equal){
 		node x = search(root, key);
 		int ptr = lower_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
 		if (ptr == x.num_keys){

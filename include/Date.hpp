@@ -35,6 +35,18 @@ public:
 
 	Date(int mm_, int dd_, int hr_, int mi_) : mm(mm_), dd(dd_), hr(hr_), mi(mi_) {}
 
+	void setdate(const Date &other){
+	    mm = other.mm, dd = other.dd;
+	}
+
+	void settime(const Date &other){
+	    hr = other.hr, mi = other.mi;
+	}
+
+	Date getdate() const{ return {mm, dd, 0, 0}; }
+
+	Date gettime() const{ return {0, 0, hr, mi}; }
+
 	Date operator+(int x) const{
 		if (x < 0) return *this - (-x);
 		Date ret = Date(mm, dd, hr, mi + x);
@@ -45,6 +57,10 @@ public:
 			ret.mm = ret.mm % 12 + 1;
 		}
 		return ret;
+	}
+
+	Date operator+(const Date &x) const{
+	    return *this + (x - Date());
 	}
 
 	Date operator-(int x) const{
@@ -64,6 +80,10 @@ public:
 	Date &operator+=(int x){
 		return *this = *this + x;
 	}
+
+    Date &operator+=(const Date &x){
+        return *this = *this + x;
+    }
 
 	Date &operator++(){
 		return *this = *this + 1;
