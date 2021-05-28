@@ -4,16 +4,20 @@
 #include <iostream>
 #include "BpTree.hpp"
 #include "String.hpp"
+#include "Date.hpp"
+#include "Train.hpp"
+#include "Order.hpp"
 using namespace std;
 using namespace sjtu;
 class USER_ALL{
-
+private:
     struct user{
         String username;
         String password;
         String name;
         String address;
         int privilege = -1;
+        int num_order = 0;
         user(const String & u, const String & pa, const String & n,const String & add, int p) {
             username = u;
             password = pa;
@@ -27,11 +31,18 @@ class USER_ALL{
             return os;
         }
     };
-    BpTree<String,user> user_tree;
-    map<String,user>user_online;
-public:
 
-    USER_ALL() : user_tree("user") {}
+    BpTree<String, user> user_tree;
+    BpTree<pair<String, int>, Order> order_tree;
+    map<String, user> user_online;
+
+    template<class T, class U>
+    static bool equal(const pair<T, U> &lhs, const pair<T, U> &rhs) {
+        return lhs.first == rhs.first;
+    }
+
+public:
+    USER_ALL() : user_tree("user"), order_tree("order") {}
 
     bool checkadduser(const String &cur,const String &us,int p){
         vector<user>possibleoffset = user_tree.search(cur);
@@ -85,7 +96,7 @@ public:
     }
 
     void logout(const String & usn){
-        if(user_online.find(usn) == user_online.end())throw("user haven't login");
+        if(user_online.find(usn) == user_online.end()) throw("user haven't login");
         else user_online.erase(user_online.find(usn));
     }
 
@@ -101,14 +112,56 @@ public:
         vector<user>possibleoffset = user_tree.search(usern);
         if(possibleoffset.empty())throw("cannot find the user");
         else{
-            user_tree.erase(usern);
             if(!password.empty())possibleoffset[0].password = password;
             if(!name.empty())possibleoffset[0].name = name;
             if(!add.empty())possibleoffset[0].address = add;
             if(pr != 0)possibleoffset[0].privilege = pr;
-            user_tree.insert(usern,possibleoffset[0]);
+            user_tree.modify(usern,possibleoffset[0]);
             cout << possibleoffset[0] << endl;
         }
+    }
+
+    void buy_ticket(TRAIN_ALL &train, const String &u, const String &id, const Date &d, int n, const String &f, const String &t, bool q){
+        vector<user> users = user_tree.search(u);
+        if (users.empty()) throw("cannot find the user");
+        if (user_online.find(u) == user_online.end()) throw("user haven't login");
+        Order res = train.query_ticket(id, d, f, t);
+        if (res.num >= n){
+            res.status = "success", res.num = n, res.price *= n;
+            train.buy_ticket(id, d, n, f, t);
+            cout << res.price << endl;
+        } else {
+            if (!q) throw("no ticket");
+            res.status = "pending", res.num = n, res.price *= n;
+            train.queue(u, res);
+            cout << "queue" << endl;
+        }
+        res.order_num = ++users[0].num_order;
+        user_tree.modify(u, users[0]);
+        res.userID = u;
+        order_tree.insert(make_pair(u, res.order_num), res);
+    }
+
+    void query_order(const String &u){
+        vector<user> users = user_tree.search(u);
+        if (users.empty()) throw("cannot find the user");
+        if (user_online.find(u) == user_online.end()) throw("user haven't login");
+        vector<Order> res = order_tree.search(make_pair(u, 0), equal);
+        for (const auto& x : res) cout << x << endl;
+    }
+
+    void refund_ticket(TRAIN_ALL &train, const String &u, int n = 1){
+        vector<user> users = user_tree.search(u);
+        if (users.empty()) throw("cannot find the user");
+        if (user_online.find(u) == user_online.end()) throw("user haven't login");
+        vector<Order> res = order_tree.search(make_pair(u, n));
+        if (res.size() != 1) throw("cannot find the order");
+        if (res[0].status == "refunded") throw("already refunded");
+        auto updated = train.refund(res[0]);
+        for (const auto &x : updated)
+            order_tree.modify(make_pair(x.userID, x.order_num), x);
+        res[0].status = "refunded";
+        order_tree.modify(make_pair(u, n), res[0]);
     }
 
 };

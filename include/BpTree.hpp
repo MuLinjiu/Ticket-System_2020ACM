@@ -244,6 +244,15 @@ public:
 		return true;
 	}
 
+	bool modify(const Key &key, const Value &val){
+        node x = search(root, key);
+        int ptr = lower_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
+        if (ptr < x.num_keys && x.keys[ptr] == key) {
+            data_file.write(x.birec[ptr].index, val);
+            return true;
+        } else return false;
+	}
+
 	void erase(const Key &key){
 		erase(root, key);
 		node x; bpt_node_file.read(root, x);
