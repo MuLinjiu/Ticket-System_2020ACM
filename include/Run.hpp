@@ -3,43 +3,46 @@
 #include "String.hpp"
 extern USER_ALL user_all;
 extern TRAIN_ALL trainAll;
-void splitstations(String & str,String *s,int size){
+void splitstations(string & str,String *s){
     int num = 0;
     String x = "";
-    for(int i = 0;num < size;i++){
-        if(str[i] == '|' || str[i] == '\0'){
+    for(int i = 0;i < str.size();i++){
+        if(str[i] == '|'){
             s[num++] = x;
             x.clear();
         }else{
             x += str[i];
         }
     }
+    s[num++] = x;
 }
-void splitprices(String & str,int *s,int size){
-    int num = 0;
+void splitprices(string & str,int *s){
+    int num = 1;
     int ans = 0;
-    for(int i = 0;num < size;i++){
-        if(str[i] == '|' || str[i] == '\0'){
+    for(int i = 0;i < str.size();i++){
+        if(str[i] == '|'){
             s[num++] = ans;
             ans = 0;
         }else{
             ans = ans * 10 + str[i] - '0';
         }
     }
+    s[num++] = ans;
 }
-void splitstopover(String & str,int *s,int size){
-    int num = 0;
+void splitstopover(string & str,int *s){
+    int num = 2;
     int ans = 0;
-    for(int i = 0;num < size;i++){//jiayige .size()
-        if(str[i] == '|' || str[i] == '\0'){
+    for(int i = 0;i < str.size();i++){//jiayige .size()
+        if(str[i] == '|'){
             s[num++] = ans;
             ans = 0;
         }else{
             ans = ans * 10 + str[i] - '0';
         }
     }
+    s[num++] = ans;
 }
-pair<String,String> splitdate(String & str){
+pair<Date,Date> splitdate(string & str){
     int i = 0 ;
     String l , r;
     for(; str[i] != '|' ;i++){
@@ -48,7 +51,7 @@ pair<String,String> splitdate(String & str){
     for(;i < str.size();i++){
         r += str[i];
     }
-    return make_pair(l,r);
+    return make_pair(Date(l),Date(r));
 }
 void run_program(){
     String command;
@@ -230,13 +233,13 @@ void run_program(){
         }catch (...){
             cout << -1 << endl;
             return;
-
         }
     }
     else if(command == "add_train"){
-        String a,train_id,starttime,stations,prices,traveltimes,stopovertimes,saledate,type;
+        string a,train_id,starttime,stations,prices,traveltimes,stopovertimes,saledate;
+        char type;
         int stationnum,seatnum;
-        pair<String,String>x;
+        pair<Date,Date>x;
         String sta[101];
         int p[101];
         int stopover[101];
@@ -262,22 +265,23 @@ void run_program(){
                 }
                 case 's':{
                     cin >> stations;
-                    splitstations(stations,sta,stationnum);
+                    splitstations(stations,sta);
+                    for(int i = 1 ; i <= stationnum ; i++)cout << sta[i] << " ";
                     break;
                 }
                 case 'p':{
                     cin >> prices;
-                    splitprices(prices,p,stationnum);
+                    splitprices(prices,p);
                     break;
                 }
                 case 't':{
                     cin >> traveltimes;
-                    splitprices(traveltimes,t,stationnum);
+                    splitprices(traveltimes,t);
                     break;
                 }
                 case 'o':{
                     cin >> stopovertimes;
-                    splitstopover(stopovertimes,stopover,stationnum);
+                    splitstopover(stopovertimes,stopover);
                     break;
                 }
                 case 'd':{
@@ -291,8 +295,8 @@ void run_program(){
                 }
                 default:throw("e");
             }
-            trainAll.add_train(train_id,stationnum,seatnum,sta,p,,t,stopover,x,type);
         }
+        trainAll.add_train(String(train_id),stationnum,seatnum,sta,p,Date(starttime),t,stopover,x,type);
     }
     else if(command == "release_train"){
         String opt,id;
@@ -301,7 +305,80 @@ void run_program(){
         trainAll.release_train(id);
     }
     else if(command == "query_train"){
-
+        String trainid;
+        String f;
+        while(getchar() == ' ') {
+            String a;
+            cin >> a;
+            switch(a[1]){
+                case 'i':{
+                    cin >> trainid;
+                    break;
+                }
+                case 'd':{
+                    cin >> f;
+                    break;
+                }
+            }
+        }
+        trainAll.query_train(trainid,Date(f));
+    }
+    else if(command == "delete_train"){
+        String opt,id;
+        cin >> opt >> id;
+        trainAll.delete_train(id);
+    }
+    else if(command == "query_ticket"){
+        String start,end,da,p;
+        while(getchar() == ' ') {
+            String a;
+            cin >> a;
+            switch(a[1]){
+                case 's':{
+                    cin >> start;
+                    break;
+                }
+                case 't':{
+                    cin >> end;
+                    break;
+                }
+                case 'd':{
+                    cin >> da;
+                    break;
+                }
+                case 'p':{
+                    cin >> p;
+                    break;
+                }
+            }
+        }
+        trainAll.query_ticket(start,end,Date(da),p);
+    }
+    else if(command == "query_transfer"){
+        String start,end,da,p;
+        while(getchar() == ' ') {
+            String a;
+            cin >> a;
+            switch(a[1]){
+                case 's':{
+                    cin >> start;
+                    break;
+                }
+                case 't':{
+                    cin >> end;
+                    break;
+                }
+                case 'd':{
+                    cin >> da;
+                    break;
+                }
+                case 'p':{
+                    cin >> p;
+                    break;
+                }
+            }
+        }
+        trainAll.query_transfer(start,end,Date(da),p);
     }
     else if(command == "exit"){
         cout << "bye" << endl;

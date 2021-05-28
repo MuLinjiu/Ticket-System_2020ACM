@@ -47,7 +47,7 @@ private:
 public:
     TRAIN_ALL() : train_stations("train_stations"), train_id("train_id") {}
 
-    void add_train(const String &id, int n, int m, const String *&s, int *p, const Date &x, int *t, int *o, const pair<Date, Date> &d, char y){
+    void add_train(const String &id, int n, int m, const String *s, int *p, const Date &x, int *t, int *o, const pair<Date, Date> &d, char y){
         train tmp;
         tmp.trainID = id, tmp.stationNum = n, tmp.startTime = x, tmp.saleDate = d, tmp.type = y, tmp.released = false;
         for (int i = 1; i <= n; ++i) tmp.stations[i] = s[i];
@@ -197,6 +197,6 @@ public:
         }
     }
 
-};
+}trainAll;
 
 #endif //TICKET_SYSTEM_2020ACM_TRAIN_HPP
