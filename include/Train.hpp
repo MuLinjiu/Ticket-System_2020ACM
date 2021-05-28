@@ -135,7 +135,7 @@ public:
                 valid.push_back((ticket){x.trainID, start_time, end_time, s, t, seats, cost_time, cost_price});
             }
         }
-        sort();
+        //sort();
     }
 
     void query_ticket(const String &s, const String &t, const Date &d, const String &p){
