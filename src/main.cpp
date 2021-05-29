@@ -8,8 +8,10 @@
 #include "Date.hpp"
 using namespace std;
 using namespace sjtu;
+
 USER_ALL user_all;
 TRAIN_ALL trainAll;
+
 int main(){
     while(true){
         run_program();

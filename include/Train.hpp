@@ -2,11 +2,11 @@
 #define TICKET_SYSTEM_2020ACM_TRAIN_HPP
 
 #include <iostream>
-#include <algorithm>
 #include "String.hpp"
 #include "BpTree.hpp"
 #include "Date.hpp"
 #include "Order.hpp"
+#include "Algorithms.hpp"
 using namespace std;
 
 class TRAIN_ALL {
@@ -99,6 +99,8 @@ public:
         if (res.empty()) throw("cannot find the train");
         if (res[0].released) throw("already released");
         res[0].released = true;
+        for (int i = 1; i <= res[0].stationNum; ++i)
+            train_stations.modify(make_pair(res[0].stations[i], id), res[0]);
         train_id.modify(id, res[0]);
     }
 
@@ -108,13 +110,14 @@ public:
         if (res[0].saleDate.first <= d && d <= res[0].saleDate.second){
             cout << id << ' ' << res[0].type << endl;
             Date cur = d;
+            int cost = 0;
             for (int i = 1; i <= res[0].stationNum; ++i){
                 cout << res[0].stations[i];
                 if (i == 1){
                     cur += res[0].startTime;
                     cout << " xx-xx xx:xx -> " << cur;
                 } else {
-                    cur += res[0].travelTimes[i-1];
+                    cur += res[0].travelTimes[i-1], cost += res[0].prices[i-1];
                     cout << ' ' << cur;
                     if (i == res[0].stationNum)
                         cout << " -> xx-xx xx:xx";
@@ -123,9 +126,9 @@ public:
                         cout << " -> " << cur;
                     }
                 }
-                cout << ' ' << res[0].prices[i];
+                cout << ' ' << cost;
                 if (i == res[0].stationNum) cout << " x" << endl;
-                else cout << ' ' << res[0].seats[i] << endl;
+                else cout << ' ' << res[0].seats[(d-res[0].saleDate.first)/1440][i] << endl;
             }
         } else throw("not found");
     }
@@ -146,8 +149,9 @@ public:
     void straight_query(const String &s, const String &t, const Date &d, const String &p){
         vector<train> res = train_stations.search(make_pair(s, String()), equal);
         valid.clear();
-        for (auto x : res){
+        for (const auto& x : res){
             if (!x.released) continue;
+//query_train(x.trainID, d);
             Date cur = x.startTime;
             Date start_time, end_time, days;
             int cost_price = 0, seats = Max_Seats;
@@ -304,11 +308,13 @@ public:
     }
 
     vector<Order> refund(const Order &order){
-        if (order.status == "pending"){
+        if (order.pending_num) {
             vector<Order> res = train_order.search(make_pair(order.trainID, order.pending_num));
-            if (res.size() != 1) throw("cannot find the pending order");
+            if (res.size() != 1) throw("cannot find pending num");
             res[0].status = "refunded";
             train_order.modify(make_pair(order.trainID, order.pending_num), res[0]);
+        }
+        if (order.status == "pending"){
             return vector<Order>();
         } else {
             vector<train> res = train_id.search(order.trainID);
@@ -330,6 +336,10 @@ public:
             train_id.modify(x.trainID, x);
             return recover(order.trainID);
         }
+    }
+
+    void clean(){
+        train_stations.clear(), train_id.clear(), train_num_order.clear(), train_order.clear();
     }
 
 };

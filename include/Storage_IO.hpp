@@ -8,6 +8,7 @@ using namespace std;
 template<class Value>
 class Storage_IO{
 private:
+    string file_name;
 	fstream file;
 
 	int get_pos(int num){
@@ -21,7 +22,7 @@ private:
 public:
 	Storage_IO() = default;
 
-	Storage_IO(string file_name){
+	Storage_IO(string file_name) : file_name(file_name){
 		file.open(file_name, ios::in | ios::out | ios::binary);
 		if (!file){
 			file.open(file_name, ios::out | ios::binary);
@@ -33,6 +34,15 @@ public:
 	}
 
 	~Storage_IO(){ file.close(); }
+
+	void clear(){
+	    file.close();
+        file.open(file_name, ios::out | ios::binary);
+        int zero = 0;
+        file.write(reinterpret_cast<char *> (&zero), sizeof(int));
+        file.close();
+        file.open(file_name, ios::in | ios::out | ios::binary);
+	}
 
 	int write(const Value &val){
 		file.seekg(0);

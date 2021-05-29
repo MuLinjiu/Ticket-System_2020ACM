@@ -27,7 +27,7 @@ private:
         }
         user() = default;
         friend ostream &operator << (ostream &os, const user &x){
-            os << x.username << " " << x.name << " " << x.address << " " << x.privilege << endl;
+            os << x.username << " " << x.name << " " << x.address << " " << x.privilege;
             return os;
         }
     };
@@ -162,6 +162,10 @@ public:
             order_tree.modify(make_pair(x.userID, x.order_num), x);
         res[0].status = "refunded";
         order_tree.modify(make_pair(u, n), res[0]);
+    }
+
+    void clean(){
+        user_online.clear(), user_tree.clear(), order_tree.clear();
     }
 
 };

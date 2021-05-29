@@ -5,6 +5,7 @@
 #include <string>
 #include "vector.hpp"
 #include "Storage_IO.hpp"
+#include "Algorithms.hpp"
 using namespace std;
 using namespace sjtu;
 
@@ -26,29 +27,12 @@ private:
 		}
 	};
 	int root;
+	string file_name;
 	Storage_IO<node> bpt_node_file;
 	Storage_IO<Value> data_file;
 	fstream bpt_basic_file;
 
 	static bool equal(const Key &lhs, const Key &rhs) { return lhs == rhs; }
-
-	Key *upper_bound(Key *begin, Key *end, Key num){
-		int l = -1, r = end - begin;
-		while (l + 1 < r){
-			int mid = (l + r) >> 1;
-			if (num < *(begin + mid)) r = mid; else l = mid;
-		}
-		return begin + r;
-	}
-
-	Key *lower_bound(Key *begin, Key *end, Key num){
-		int l = -1, r = end - begin;
-		while (l + 1 < r){
-			int mid = (l + r) >> 1;
-			if (num <= *(begin + mid)) r = mid; else l = mid;
-		}
-		return begin + r;
-	}
 
 	int split(int child, node &y){
 		int l = y.num_keys / 2, r = y.num_keys - l;
@@ -207,7 +191,7 @@ private:
 public:
 	BpTree() = default;
 
-	BpTree(string file_name) : bpt_node_file("bpt_" + file_name + "_node.dat"), data_file("data_" + file_name + ".dat"){
+	BpTree(string file_name) : file_name(file_name), bpt_node_file("bpt_" + file_name + "_node.dat"), data_file("data_" + file_name + ".dat"){
 		bpt_basic_file.open("bpt_" + file_name + "_basic.dat", ios::in | ios::out | ios::binary);
 		if (!bpt_basic_file){
 			node tmp;
@@ -224,6 +208,18 @@ public:
 	}
 
 	~BpTree(){ bpt_basic_file.close(); }
+
+	void clear(){
+	    bpt_node_file.clear(), data_file.clear();
+	    bpt_basic_file.close();
+	    bpt_basic_file.open("bpt_" + file_name + "_basic.dat", ios::out | ios::binary);
+        node tmp;
+        tmp.is_leaf = true;
+        root = bpt_node_file.write(tmp);
+        bpt_basic_file.write(reinterpret_cast<char *> (&root), sizeof(int));
+        bpt_basic_file.close();
+        bpt_basic_file.open("bpt_" + file_name + "_basic.dat", ios::in | ios::out | ios::binary);
+	}
 
 	bool insert(const Key &key, const Value &val){
 		node x = search(root, key), y;

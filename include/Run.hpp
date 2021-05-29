@@ -4,7 +4,7 @@
 extern USER_ALL user_all;
 extern TRAIN_ALL trainAll;
 void splitstations(string & str,String *s){
-    int num = 0;
+    int num = 1;
     String x = "";
     for(int i = 0;i < str.size();i++){
         if(str[i] == '|'){
@@ -48,7 +48,7 @@ pair<Date,Date> splitdate(string & str){
     for(; str[i] != '|' ;i++){
         l += str[i];
     }
-    for(;i < str.size();i++){
+    for(++i; i < str.size();i++){
         r += str[i];
     }
     return make_pair(Date(l),Date(r));
@@ -153,13 +153,21 @@ void run_program(){
         return;
     }
     else if(command == "login"){
-        String a;
-        cin >> a;
-        String username;
-        cin >> username;
-        cin >> a;
-        String pass;
-        cin >> pass;
+        String username, pass;
+        while(getchar() == ' ') {
+            String a;
+            cin >> a;
+            switch(a[1]){
+                case 'u':{
+                    cin >> username;
+                    break;
+                }
+                case 'p':{
+                    cin >> pass;
+                    break;
+                }
+            }
+        }
         try{
             user_all.login(username,pass);
         }catch (...){
@@ -181,8 +189,21 @@ void run_program(){
         return;
     }
     else if(command == "query_profile"){
-        String a,username,cur;
-        cin >> a >> cur >> a >> username;
+        String username, cur;
+        while(getchar() == ' ') {
+            String a;
+            cin >> a;
+            switch(a[1]){
+                case 'c':{
+                    cin >> cur;
+                    break;
+                }
+                case 'u':{
+                    cin >> username;
+                    break;
+                }
+            }
+        }
         try{
             if(user_all.checkquerypofile(cur,username)){
                 user_all.query_pofile(username);
@@ -266,7 +287,6 @@ void run_program(){
                 case 's':{
                     cin >> stations;
                     splitstations(stations,sta);
-                    for(int i = 1 ; i <= stationnum ; i++)cout << sta[i] << " ";
                     break;
                 }
                 case 'p':{
@@ -296,13 +316,27 @@ void run_program(){
                 default:throw("e");
             }
         }
-        trainAll.add_train(String(train_id),stationnum,seatnum,sta,p,Date(starttime),t,stopover,x,type);
+        try{
+            trainAll.add_train(String(train_id),stationnum,seatnum,sta,p,Date(starttime),t,stopover,x,type);
+        }catch (...){
+            cout << -1 << endl;
+            return;
+        }
+        cout << 0 << endl;
+        return ;
     }
     else if(command == "release_train"){
         String opt,id;
         cin >> opt >> id;
         if(opt != "-i")throw("e");
-        trainAll.release_train(id);
+        try {
+            trainAll.release_train(id);
+        }catch (...){
+            cout << -1 << endl;
+            return;
+        }
+        cout << 0 << endl;
+        return ;
     }
     else if(command == "query_train"){
         String trainid;
@@ -321,15 +355,27 @@ void run_program(){
                 }
             }
         }
-        trainAll.query_train(trainid,Date(f));
+        try {
+            trainAll.query_train(trainid, Date(f));
+        }catch (...){
+            cout << -1 << endl;
+            return;
+        }
     }
     else if(command == "delete_train"){
         String opt,id;
         cin >> opt >> id;
-        trainAll.delete_train(id);
+        try {
+            trainAll.delete_train(id);
+        }catch (...){
+            cout << -1 << endl;
+            return;
+        }
+        cout << 0 << endl;
+        return ;
     }
     else if(command == "query_ticket"){
-        String start,end,da,p;
+        String start,end,da,p = "time";
         while(getchar() == ' ') {
             String a;
             cin >> a;
@@ -352,10 +398,15 @@ void run_program(){
                 }
             }
         }
-        trainAll.query_ticket(start,end,Date(da),p);
+        try {
+            trainAll.query_ticket(start, end, Date(da), p);
+        }catch (...){
+            cout << -1 << endl;
+            return;
+        }
     }
     else if(command == "query_transfer"){
-        String start,end,da,p;
+        String start,end,da,p = "time";
         while(getchar() == ' ') {
             String a;
             cin >> a;
@@ -378,7 +429,92 @@ void run_program(){
                 }
             }
         }
-        trainAll.query_transfer(start,end,Date(da),p);
+        trainAll.query_transfer(start, end, Date(da), p);
+    }
+    else if(command == "buy_ticket"){
+        String username, trainID, date, start, end, q = "false";
+        int num;
+        while(getchar() == ' ') {
+            String a;
+            cin >> a;
+            switch(a[1]){
+                case 'u':{
+                    cin >> username;
+                    break;
+                }
+                case 'i':{
+                    cin >> trainID;
+                    break;
+                }
+                case 'd':{
+                    cin >> date;
+                    break;
+                }
+                case 'n':{
+                    cin >> num;
+                    break;
+                }
+                case 'f': {
+                    cin >> start;
+                    break;
+                }
+                case 't': {
+                    cin >> end;
+                    break;
+                }
+                case 'q': {
+                    cin >> q;
+                    break;
+                }
+            }
+        }
+        try{
+            user_all.buy_ticket(trainAll, username, trainID, Date(date), num, start, end, q == "true");
+        }catch (...){
+            cout << -1 << endl;
+            return;
+        }
+    }
+    else  if (command == "query_order") {
+        String username;
+        cin >> username;
+        try {
+            user_all.query_order(username);
+        }catch (...){
+            cout << -1 << endl;
+            return;
+        }
+    }
+    else  if (command == "refund_ticket") {
+        String username;
+        int num = 1;
+        while(getchar() == ' ') {
+            String a;
+            cin >> a;
+            switch(a[1]){
+                case 'u':{
+                    cin >> username;
+                    break;
+                }
+                case 'n':{
+                    cin >> num;
+                    break;
+                }
+            }
+        }
+        try {
+            user_all.refund_ticket(trainAll, username, num);
+        }catch (...){
+            cout << -1 << endl;
+            return;
+        }
+        cout << 0 << endl;
+        return ;
+    }
+    else  if (command == "clean") {
+        user_all.clean();
+        trainAll.clean();
+        cout << "0" << endl;
     }
     else if(command == "exit"){
         cout << "bye" << endl;

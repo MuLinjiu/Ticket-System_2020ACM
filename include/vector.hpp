@@ -55,19 +55,11 @@ namespace sjtu {
 
             iterator operator+(const int &n) const {
                 //TODO
-                iterator tmp(*this);
-                for(int i = 1 ; i <= n ; i++){
-                    ++tmp;
-                }
-                return tmp;
+                return iterator(this->vec,this->pointer,this->pos + n);
             }
             iterator operator-(const int &n) const {
                 //TODO
-                for(int i = 1 ; i <= n ; i++){
-                    --(*this);
-                }
-                iterator a(this->vec,this->pointer,this->pos - n);
-                return a;
+                return iterator(this->vec,this->pointer,this->pos - n);
             }
             // return the distance between two iterators,
             // if these two iterators point to different vectors, throw invaild_iterator.

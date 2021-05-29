@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include "String.hpp"
+using namespace std;
 
 class Date{
 	friend ostream &operator <<(ostream &os, const Date &x){
@@ -12,6 +13,7 @@ class Date{
 	}
 
 private:
+    int yr = 0;
 	int mm, dd, hr, mi;
 	static const int days[12];
 
@@ -54,7 +56,7 @@ public:
 		ret.dd += ret.hr / 24, ret.hr %= 24;
 		while (ret.dd > days[ret.mm-1]){
 			ret.dd -= days[ret.mm-1];
-			ret.mm = ret.mm % 12 + 1;
+			if (++ret.mm > 12) ret.yr++, ret.mm = 1;
 		}
 		return ret;
 	}
@@ -71,7 +73,7 @@ public:
 		ret.dd += ret.hr / 24, ret.hr %= 24;
 		if (ret.hr < 0) ret.dd--, ret.hr += 24;
 		while (ret.dd < 0){
-			if (--ret.mm <= 0) ret.mm += 12;
+			if (--ret.mm <= 0) ret.yr--, ret.mm += 12;
 			ret.dd += days[ret.mm-1];
 		}
 		return ret;
@@ -110,7 +112,7 @@ public:
 	}
 
 	bool operator==(const Date &other) const{
-		return mm == other.mm && dd == other.dd && hr == other.hr && mi == other.mi;
+		return yr == other.yr && mm == other.mm && dd == other.dd && hr == other.hr && mi == other.mi;
 	}
 
 	bool operator!=(const Date &other) const{
@@ -118,6 +120,7 @@ public:
 	}
 
 	bool operator<(const Date &other) const{
+        if (yr != other.yr) return yr < other.yr;
 		if (mm != other.mm) return mm < other.mm;
 		if (dd != other.dd) return dd < other.dd;
 		if (hr != other.hr) return hr < other.hr;
@@ -139,7 +142,7 @@ public:
 	int operator-(const Date &other) const{
 		int sign = 1;
 		if (*this < other) sign = -1;
-		int l = 0, r = 150000;
+		int l = 0, r = 550000;
 		while (l + 1 < r){
 			int mid = (l + r) >> 1;
 			if ((sign == 1 && other + mid <= *this) || (sign == -1 && *this + mid <= other))
