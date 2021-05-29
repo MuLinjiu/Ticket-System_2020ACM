@@ -146,44 +146,36 @@ public:
         train_id.erase(id);
     }
 
-    void straight_query(const String &s, const String &t, const Date &d, const String &p){
+    void query_ticket(const String &s, const String &t, const Date &d, const String &p = "time"){
         vector<train> res = train_stations.search(make_pair(s, String()), equal);
         valid.clear();
         for (const auto& x : res){
             if (!x.released) continue;
-//query_train(x.trainID, d);
             Date cur = x.startTime;
-            Date start_time, end_time, days;
+            Date start_time, end_time, duration;
             int cost_price = 0, seats = Max_Seats;
-            bool aboard = false;
+            bool aboard = false, ashore = false;
             for (int i = 1; i <= x.stationNum; ++i){
-                if (x.stations[i] == s){
-                    aboard = true, days = cur.getdate();
-                    cur.setdate(d), start_time = cur;
-                    if (i > 1 && i < x.stationNum)
-                        start_time += x.stopoverTimes[i];
-                }
                 if (x.stations[i] == t){
-                    aboard = false, end_time = cur;
-                    break;
+                    ashore = true; end_time = cur; break;
+                }
+                if (i > 1 && i < x.stationNum) cur += x.stopoverTimes[i];
+                if (x.stations[i] == s){
+                    aboard = true, duration = cur;
+                    cur.setdate(d), start_time = cur;
                 }
                 if (aboard){
                     cost_price += x.prices[i];
-                    seats = min(seats, x.seats[(d-(days+x.saleDate.first))/1440][i]);
+                    seats = min(seats, x.seats[(d-(duration.getdate()+x.saleDate.first))/1440][i]);
                 }
-                if (i > 1 && i < x.stationNum) cur += x.stopoverTimes[i];
                 if (i < x.stationNum) cur += x.travelTimes[i];
             }
-            if (!aboard && x.saleDate.first + days <= d && x.saleDate.second + days >= d){
+            if (aboard && ashore && (x.saleDate.first + duration).getdate() <= d && (x.saleDate.second + duration).getdate() >= d){
                 int cost_time = end_time - start_time;
                 valid.push_back((ticket){x.trainID, start_time, end_time, s, t, seats, cost_time, cost_price});
             }
         }
         sort(valid.begin(), valid.end(), p == "time" ? cmp_by_time : cmp_by_cost);
-    }
-
-    void query_ticket(const String &s, const String &t, const Date &d, const String &p = "time"){
-        straight_query(s, t, d, p);
         cout << valid.size() << endl;
         for (const auto& x : valid) cout << x << endl;
     }
@@ -194,56 +186,84 @@ public:
         bool got_answer = false;
         for (const auto& x : res){
             if (!x.released) continue;
-            Date cur = x.startTime, days;
+            Date cur = x.startTime, duration;
             int i = 1;
             for (; i <= x.stationNum; ++i) {
                 if (x.stations[i] == s) break;
                 if (i > 1 && i < x.stationNum) cur += x.stopoverTimes[i];
                 if (i < x.stationNum) cur += x.travelTimes[i];
             }
-            days = cur.getdate();
-            if (x.saleDate.first + days <= d && x.saleDate.second + days >= d){
+            if (i > 1 && i < x.stationNum) cur += x.stopoverTimes[i];
+            duration = cur;
+            if ((x.saleDate.first + duration).getdate() <= d && (x.saleDate.second + duration).getdate() >= d){
                 cur.setdate(d);
                 Date start_time = cur;
-                if (i > 1 && i < x.stationNum) cur += x.stopoverTimes[i];
                 if (i < x.stationNum) cur += x.travelTimes[i];
-                int cost_price = x.prices[i], seats = x.seats[(cur.getdate()-x.saleDate.first)/1440][i];
+                int cost_price = x.prices[i], seats = x.seats[(d-(duration.getdate()+x.saleDate.first))/1440][i];
                 for (i++; i <= x.stationNum; ++i){
-                    for (int offset = 0; offset <= 3; ++offset) {
-                        straight_query(x.stations[i], t, cur.getdate() + offset, p);
-                        int j = 0;
-                        while (j < valid.size()){
-                            if (valid[j].startTime >= cur) break;
+                    vector<train> res2 = train_stations.search(make_pair(x.stations[i], String()), equal);
+                    valid.clear();
+                    for (const auto& y : res2){
+                        if (!y.released) continue;
+                        Date cur2 = y.startTime;
+                        Date start_time2, end_time2, duration2, d2;
+                        int cost_price2 = 0, seats2 = Max_Seats;
+                        bool aboard = false, ashore = false;
+                        for (int j = 1; j <= y.stationNum; ++j){
+                            if (y.stations[j] == t){
+                                ashore = true; end_time2 = cur2; break;
+                            }
+                            if (j > 1 && j < y.stationNum) cur2 += y.stopoverTimes[j];
+                            if (y.stations[j] == x.stations[i]){
+                                aboard = true, duration2 = cur2;
+                                if (y.saleDate.second + cur2 < cur) break;
+                                if (y.saleDate.first + cur2 >= cur)
+                                    d2 = (y.saleDate.first + cur2).getdate();
+                                else d2 = cur2.gettime() >= cur.gettime() ? cur.getdate() : cur.getdate() + 1440;
+                                cur2.setdate(d2), start_time2 = cur2;
+                            }
+                            if (aboard){
+                                cost_price2 += y.prices[j];
+                                seats2 = min(seats2, y.seats[(d2-(duration2.getdate()+y.saleDate.first))/1440][j]);
+                            }
+                            if (j < y.stationNum) cur2 += y.travelTimes[j];
                         }
-                        if (j < valid.size()){
-                            ticket tmp{x.trainID, start_time, cur, s, x.stations[i], seats, cur - start_time, cost_price};
-                            if (!got_answer) optimal = make_pair(tmp, valid[j]), got_answer = true;
-                            else {
-                                if (p == "time"){
-                                    if (valid[j].endTime - start_time == optimal.second.endTime - optimal.first.startTime) {
-                                        if (tmp.cost_time < optimal.first.cost_time) optimal = make_pair(tmp, valid[j]);
-                                    } else if (valid[j].endTime - start_time < optimal.second.endTime - optimal.first.startTime)
-                                        optimal = make_pair(tmp, valid[j]);
-                                } else {
-                                    if (valid[j].cost_price + cost_price == optimal.first.cost_price + optimal.second.cost_price) {
-                                        if (tmp.cost_time < optimal.first.cost_time) optimal = make_pair(tmp, valid[j]);
-                                    } else if (valid[j].cost_price + cost_price < optimal.first.cost_price + optimal.second.cost_price)
-                                        optimal = make_pair(tmp, valid[j]);
-                                }
+                        if (aboard && ashore){
+                            int cost_time2 = end_time2 - start_time2;
+                            valid.push_back((ticket){y.trainID, start_time2, end_time2, x.stations[i], t, seats2, cost_time2, cost_price2});
+                        }
+                    }
+                    sort(valid.begin(), valid.end(), p == "time" ? cmp_by_time : cmp_by_cost);
+                    int j = 0;
+                    while (j < valid.size() && valid[j].trainID == x.trainID) j++;
+                    if (j < valid.size()){
+                        ticket tmp{x.trainID, start_time, cur, s, x.stations[i], seats, cur - start_time, cost_price};
+                        if (!got_answer) optimal = make_pair(tmp, valid[j]), got_answer = true;
+                        else {
+                            if (p == "time"){
+                                if (valid[j].endTime - start_time == optimal.second.endTime - optimal.first.startTime) {
+                                    if (tmp.cost_time < optimal.first.cost_time) optimal = make_pair(tmp, valid[j]);
+                                } else if (valid[j].endTime - start_time < optimal.second.endTime - optimal.first.startTime)
+                                    optimal = make_pair(tmp, valid[j]);
+                            } else {
+                                if (valid[j].cost_price + cost_price == optimal.first.cost_price + optimal.second.cost_price) {
+                                    if (tmp.cost_time < optimal.first.cost_time) optimal = make_pair(tmp, valid[j]);
+                                } else if (valid[j].cost_price + cost_price < optimal.first.cost_price + optimal.second.cost_price)
+                                    optimal = make_pair(tmp, valid[j]);
                             }
                         }
                     }
                     if (i > 1 && i < x.stationNum) cur += x.stopoverTimes[i];
                     if (i < x.stationNum){
                         cur += x.travelTimes[i];
-                        seats = min(seats, x.seats[(d-(days+x.saleDate.first))/1440][i]);
+                        seats = min(seats, x.seats[(d-(duration.getdate()+x.saleDate.first))/1440][i]);
                         cost_price += x.prices[i];
                     }
                 }
-                if (!got_answer) cout << '0' << endl;
-                else cout << optimal.first << endl << optimal.second << endl;
             }
         }
+        if (!got_answer) cout << '0' << endl;
+        else cout << optimal.first << endl << optimal.second << endl;
     }
 
     Order query_ticket(const String &id, const Date &d, const String &f, const String &t){
@@ -252,28 +272,25 @@ public:
         train &x = res[0];
         if (!x.released) throw("have not released");
         Date cur = x.startTime;
-        Date start_time, end_time, days;
+        Date start_time, end_time, duration;
         int cost_price = 0, seats = Max_Seats;
-        bool aboard = false;
+        bool aboard = false, ashore = false;
         for (int i = 1; i <= x.stationNum; ++i){
-            if (x.stations[i] == f){
-                aboard = true, days = cur.getdate();
-                cur.setdate(d), start_time = cur;
-                if (i > 1 && i < x.stationNum)
-                    start_time += x.stopoverTimes[i];
-            }
             if (x.stations[i] == t){
-                aboard = false, end_time = cur;
-                break;
+                ashore = true, end_time = cur; break;
+            }
+            if (i > 1 && i < x.stationNum) cur += x.stopoverTimes[i];
+            if (x.stations[i] == f){
+                aboard = true, duration = cur;
+                cur.setdate(d), start_time = cur;
             }
             if (aboard){
                 cost_price += x.prices[i];
-                seats = min(seats, x.seats[(d-(days+x.saleDate.first))/1440][i]);
+                seats = min(seats, x.seats[(d-(duration.getdate()+x.saleDate.first))/1440][i]);
             }
-            if (i > 1 && i < x.stationNum) cur += x.stopoverTimes[i];
             if (i < x.stationNum) cur += x.travelTimes[i];
         }
-        if (!aboard && x.saleDate.first + days <= d && x.saleDate.second + days >= d)
+        if (aboard && ashore && (x.saleDate.first + duration).getdate() <= d && (x.saleDate.second + duration).getdate() >= d)
             return Order(x.trainID, start_time, end_time, f, t, cost_price, seats, "None");
         throw("purchase failed");
     }
@@ -284,21 +301,19 @@ public:
         bool aboard = false;
         Date cur = x.startTime, days;
         for (int i = 1; i <= x.stationNum; ++i){
+            if (x.stations[i] == t) break;
+            if (i > 1 && i < x.stationNum) cur += x.stopoverTimes[i];
             if (x.stations[i] == f)
                 aboard = true, days = cur.getdate();
-            if (x.stations[i] == t){
-                aboard = false; break;
-            }
             if (aboard) x.seats[(d-(days+x.saleDate.first))/1440][i] -= n;
-            if (i > 1 && i < x.stationNum) cur += x.stopoverTimes[i];
             if (i < x.stationNum) cur += x.travelTimes[i];
         }
         for (int i = 1; i <= x.stationNum; ++i)
-            train_stations.modify(make_pair(x.stations[i], x.trainID), x);
+            train_stations.modify(make_pair(x.stations[i], x.trainID) , x);
         train_id.modify(x.trainID, x);
     }
 
-    void queue(const String &id, Order order){
+    void queue(const String &id, Order &order){
         vector<train> res = train_id.search(id);
         train &x = res[0];
         vector<int> num = train_num_order.search(id);
@@ -322,13 +337,11 @@ public:
             bool aboard = false;
             Date cur = x.startTime, days;
             for (int i = 1; i <= x.stationNum; ++i){
+                if (x.stations[i] == order.endStation) break;
+                if (i > 1 && i < x.stationNum) cur += x.stopoverTimes[i];
                 if (x.stations[i] == order.startStation)
                     aboard = true, days = cur.getdate();
-                if (x.stations[i] == order.endStation){
-                    aboard = false; break;
-                }
                 if (aboard) x.seats[(order.startTime.getdate()-(days+x.saleDate.first))/1440][i] += order.num;
-                if (i > 1 && i < x.stationNum) cur += x.stopoverTimes[i];
                 if (i < x.stationNum) cur += x.travelTimes[i];
             }
             for (int i = 1; i <= x.stationNum; ++i)

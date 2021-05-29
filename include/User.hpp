@@ -69,7 +69,7 @@ public:
         if(user_online.find(cur) == user_online.end())return false;
         if(possibleoffset.empty() || possibleoffset2.empty())return false;
         if(us == cur)return true;
-        if(possibleoffset[0].privilege <= possibleoffset2[0].privilege && possibleoffset[0].privilege <= c)return false;
+        if(possibleoffset[0].privilege <= possibleoffset2[0].privilege || possibleoffset[0].privilege <= c)return false;
         else return true;
     }
 
@@ -126,19 +126,19 @@ public:
         if (users.empty()) throw("cannot find the user");
         if (user_online.find(u) == user_online.end()) throw("user haven't login");
         Order res = train.query_ticket(id, d, f, t);
-        if (res.num >= n){
-            res.status = "success", res.num = n, res.price *= n;
-            train.buy_ticket(id, d, n, f, t);
-            cout << res.price << endl;
-        } else {
-            if (!q) throw("no ticket");
-            res.status = "pending", res.num = n, res.price *= n;
-            train.queue(u, res);
-            cout << "queue" << endl;
-        }
+        if (res.num < n && !q) throw("no ticket");
         res.order_num = ++users[0].num_order;
         user_tree.modify(u, users[0]);
         res.userID = u;
+        if (res.num >= n){
+            res.status = "success", res.num = n;
+            train.buy_ticket(id, d, n, f, t);
+            cout << res.price * n << endl;
+        } else {
+            res.status = "pending", res.num = n;
+            train.queue(id, res);
+            cout << "queue" << endl;
+        }
         order_tree.insert(make_pair(u, res.order_num), res);
     }
 
@@ -147,13 +147,16 @@ public:
         if (users.empty()) throw("cannot find the user");
         if (user_online.find(u) == user_online.end()) throw("user haven't login");
         vector<Order> res = order_tree.search(make_pair(u, 0), equal);
-        for (const auto& x : res) cout << x << endl;
+        cout << res.size() << endl;
+        for (int i = (int)res.size() - 1; i >= 0; --i)
+            cout << res[i] << endl;
     }
 
     void refund_ticket(TRAIN_ALL &train, const String &u, int n = 1){
         vector<user> users = user_tree.search(u);
         if (users.empty()) throw("cannot find the user");
         if (user_online.find(u) == user_online.end()) throw("user haven't login");
+        n = users[0].num_order - n + 1;
         vector<Order> res = order_tree.search(make_pair(u, n));
         if (res.size() != 1) throw("cannot find the order");
         if (res[0].status == "refunded") throw("already refunded");

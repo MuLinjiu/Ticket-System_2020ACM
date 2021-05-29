@@ -405,6 +405,7 @@ namespace sjtu {
             }
             delete []first;
             first = new T *[20];
+            last = -1;
         }
 
         void expand(){

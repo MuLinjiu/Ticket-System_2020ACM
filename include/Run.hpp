@@ -1,8 +1,10 @@
 #ifndef MAP_HPP_RUN_HPP
 #define MAP_HPP_RUN_HPP
 #include "String.hpp"
+
 extern USER_ALL user_all;
 extern TRAIN_ALL trainAll;
+
 void splitstations(string & str,String *s){
     int num = 1;
     String x = "";
@@ -53,7 +55,8 @@ pair<Date,Date> splitdate(string & str){
     }
     return make_pair(Date(l),Date(r));
 }
-void run_program(){
+
+bool run_program(){
     String command;
     cin >> command;
     if(command == "add_user"){
@@ -147,10 +150,9 @@ void run_program(){
             }
         }catch (...){
             cout << -1 << endl;
-            return;
+            return true;
         }
         cout << 0 << endl;
-        return;
     }
     else if(command == "login"){
         String username, pass;
@@ -172,10 +174,10 @@ void run_program(){
             user_all.login(username,pass);
         }catch (...){
             cout << -1 << endl;
-            return;
+            return true;
         }
         cout << 0 << endl;
-        return;
+        return true;
     }
     else if(command == "logout"){
         String a,username;
@@ -184,9 +186,9 @@ void run_program(){
             user_all.logout(username);
         }catch (...){
             cout << -1 << endl;
-            return;
-        }cout << 0 << endl;
-        return;
+            return true;
+        }
+        cout << 0 << endl;
     }
     else if(command == "query_profile"){
         String username, cur;
@@ -210,9 +212,8 @@ void run_program(){
             } else cout << -1 << endl;
         }catch (...){
             cout << -1 << endl;
-            return;
+            return true;
         }
-        return;
     }
     else if(command == "modify_profile"){
         String a,cur_username,username,password,name,add;
@@ -253,7 +254,7 @@ void run_program(){
             }else throw("e");
         }catch (...){
             cout << -1 << endl;
-            return;
+            return true;
         }
     }
     else if(command == "add_train"){
@@ -320,10 +321,9 @@ void run_program(){
             trainAll.add_train(String(train_id),stationnum,seatnum,sta,p,Date(starttime),t,stopover,x,type);
         }catch (...){
             cout << -1 << endl;
-            return;
+            return true;
         }
         cout << 0 << endl;
-        return ;
     }
     else if(command == "release_train"){
         String opt,id;
@@ -333,10 +333,9 @@ void run_program(){
             trainAll.release_train(id);
         }catch (...){
             cout << -1 << endl;
-            return;
+            return true;
         }
         cout << 0 << endl;
-        return ;
     }
     else if(command == "query_train"){
         String trainid;
@@ -359,7 +358,7 @@ void run_program(){
             trainAll.query_train(trainid, Date(f));
         }catch (...){
             cout << -1 << endl;
-            return;
+            return true;
         }
     }
     else if(command == "delete_train"){
@@ -369,10 +368,9 @@ void run_program(){
             trainAll.delete_train(id);
         }catch (...){
             cout << -1 << endl;
-            return;
+            return true;
         }
         cout << 0 << endl;
-        return ;
     }
     else if(command == "query_ticket"){
         String start,end,da,p = "time";
@@ -402,7 +400,7 @@ void run_program(){
             trainAll.query_ticket(start, end, Date(da), p);
         }catch (...){
             cout << -1 << endl;
-            return;
+            return true;
         }
     }
     else if(command == "query_transfer"){
@@ -472,17 +470,17 @@ void run_program(){
             user_all.buy_ticket(trainAll, username, trainID, Date(date), num, start, end, q == "true");
         }catch (...){
             cout << -1 << endl;
-            return;
+            return true;
         }
     }
     else  if (command == "query_order") {
-        String username;
-        cin >> username;
+        String a, username;
+        cin >> a >> username;
         try {
             user_all.query_order(username);
         }catch (...){
             cout << -1 << endl;
-            return;
+            return true;
         }
     }
     else  if (command == "refund_ticket") {
@@ -506,10 +504,9 @@ void run_program(){
             user_all.refund_ticket(trainAll, username, num);
         }catch (...){
             cout << -1 << endl;
-            return;
+            return true;
         }
         cout << 0 << endl;
-        return ;
     }
     else  if (command == "clean") {
         user_all.clean();
@@ -518,7 +515,8 @@ void run_program(){
     }
     else if(command == "exit"){
         cout << "bye" << endl;
-        exit(0);
+        return false;
     }
+    return true;
 }
 #endif //MAP_HPP_RUN_HPP
