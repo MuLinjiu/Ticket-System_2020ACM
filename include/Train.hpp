@@ -44,6 +44,7 @@ private:
     BpTree<String, int> train_num_order;
     BpTree<pair<String, int>, Order> train_order;
     vector<ticket> valid;
+    static Date standard_start;
 
     template<class T, class U>
     static bool equal(const pair<T, U> &lhs, const pair<T, U> &rhs) {
@@ -51,11 +52,21 @@ private:
     }
 
     static bool cmp_by_time(const ticket &lhs, const ticket &rhs) {
-        return lhs.cost_time < rhs.cost_time;
+        if (lhs.cost_time == rhs.cost_time)
+            return lhs.trainID < rhs.trainID;
+        else return lhs.cost_time < rhs.cost_time;
+    }
+
+    static bool cmp_by_standard_time(const ticket &lhs, const ticket &rhs) {
+        if (lhs.endTime - TRAIN_ALL::standard_start == rhs.endTime - TRAIN_ALL::standard_start)
+            return lhs.trainID < rhs.trainID;
+        else return lhs.endTime - TRAIN_ALL::standard_start < rhs.endTime - TRAIN_ALL::standard_start;
     }
 
     static bool cmp_by_cost(const ticket &lhs, const ticket &rhs) {
-        return lhs.cost_price < rhs.cost_price;
+        if (lhs.cost_price == rhs.cost_price)
+            return lhs.trainID < rhs.trainID;
+        else return lhs.cost_price < rhs.cost_price;
     }
 
     vector<Order> recover(const String &id){
@@ -149,7 +160,8 @@ public:
     void query_ticket(const String &s, const String &t, const Date &d, const String &p = "time"){
         vector<train> res = train_stations.search(make_pair(s, String()), equal);
         valid.clear();
-        for (const auto& x : res){
+        for (int i = 0; i < res.size(); i ++){
+            const train &x = res[i] ;
             if (!x.released) continue;
             Date cur = x.startTime;
             Date start_time, end_time, duration;
@@ -159,9 +171,11 @@ public:
                 if (x.stations[i] == t){
                     ashore = true; end_time = cur; break;
                 }
-                if (i > 1 && i < x.stationNum) cur += x.stopoverTimes[i];
+                if (i > 1 && i < x.stationNum)   cur += x.stopoverTimes[i];
                 if (x.stations[i] == s){
-                    aboard = true, duration = cur;
+                    duration = cur;
+                    if (!((x.saleDate.first + duration).getdate() <= d && (x.saleDate.second + duration).getdate() >= d)) break;
+                    aboard = true;
                     cur.setdate(d), start_time = cur;
                 }
                 if (aboard){
@@ -170,7 +184,7 @@ public:
                 }
                 if (i < x.stationNum) cur += x.travelTimes[i];
             }
-            if (aboard && ashore && (x.saleDate.first + duration).getdate() <= d && (x.saleDate.second + duration).getdate() >= d){
+            if (aboard && ashore){
                 int cost_time = end_time - start_time;
                 valid.push_back((ticket){x.trainID, start_time, end_time, s, t, seats, cost_time, cost_price});
             }
@@ -233,7 +247,8 @@ public:
                             valid.push_back((ticket){y.trainID, start_time2, end_time2, x.stations[i], t, seats2, cost_time2, cost_price2});
                         }
                     }
-                    sort(valid.begin(), valid.end(), p == "time" ? cmp_by_time : cmp_by_cost);
+                    TRAIN_ALL::standard_start = start_time;
+                    sort(valid.begin(), valid.end(), p == "time" ? cmp_by_standard_time : cmp_by_cost);
                     int j = 0;
                     while (j < valid.size() && valid[j].trainID == x.trainID) j++;
                     if (j < valid.size()){
@@ -281,7 +296,9 @@ public:
             }
             if (i > 1 && i < x.stationNum) cur += x.stopoverTimes[i];
             if (x.stations[i] == f){
-                aboard = true, duration = cur;
+                duration = cur;
+                if (!((x.saleDate.first + duration).getdate() <= d && (x.saleDate.second + duration).getdate() >= d)) break;
+                aboard = true;
                 cur.setdate(d), start_time = cur;
             }
             if (aboard){
@@ -290,7 +307,7 @@ public:
             }
             if (i < x.stationNum) cur += x.travelTimes[i];
         }
-        if (aboard && ashore && (x.saleDate.first + duration).getdate() <= d && (x.saleDate.second + duration).getdate() >= d)
+        if (aboard && ashore)
             return Order(x.trainID, start_time, end_time, f, t, cost_price, seats, "None");
         throw("purchase failed");
     }
@@ -356,5 +373,7 @@ public:
     }
 
 };
+
+Date TRAIN_ALL::standard_start;
 
 #endif //TICKET_SYSTEM_2020ACM_TRAIN_HPP

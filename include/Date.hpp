@@ -27,9 +27,9 @@ private:
 	}
 
 public:
-	Date() : mm(0), dd(0), hr(0), mi(0) {}
+	Date() : mm(1), dd(1), hr(0), mi(0) {}
 
-	Date(const String &str) : mm(0), dd(0), hr(0), mi(0) {
+	Date(const String &str) : mm(1), dd(1), hr(0), mi(0) {
 	    int x = (str[0] - '0') * 10 + (str[1] - '0'), y = (str[3] - '0') * 10 + (str[4] - '0');
 	    if (str[2] == '-') mm = x, dd = y;
 	    else hr = x, mi = y;
@@ -47,7 +47,7 @@ public:
 
 	Date getdate() const{ return {mm, dd, 0, 0}; }
 
-	Date gettime() const{ return {0, 0, hr, mi}; }
+	Date gettime() const{ return {1, 1, hr, mi}; }
 
 	Date operator+(int x) const{
 		if (x < 0) return *this - (-x);

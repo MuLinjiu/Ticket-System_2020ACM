@@ -2,13 +2,14 @@
 #define MAP_HPP_USER_HPP
 #include <cstring>
 #include <iostream>
+#include<vector>
 #include "BpTree.hpp"
 #include "String.hpp"
 #include "Date.hpp"
 #include "Train.hpp"
 #include "Order.hpp"
 using namespace std;
-using namespace sjtu;
+//using namespace sjtu;
 class USER_ALL{
 private:
     struct user{
@@ -34,7 +35,7 @@ private:
 
     BpTree<String, user> user_tree;
     BpTree<pair<String, int>, Order> order_tree;
-    map<String, user> user_online;
+    sjtu::map<String, user> user_online;
 
     template<class T, class U>
     static bool equal(const pair<T, U> &lhs, const pair<T, U> &rhs) {

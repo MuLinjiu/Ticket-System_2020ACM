@@ -7,7 +7,7 @@
 #include "Storage_IO.hpp"
 #include "Algorithms.hpp"
 using namespace std;
-using namespace sjtu;
+//using namespace sjtu;
 
 template<class Key, class Value>
 class BpTree{

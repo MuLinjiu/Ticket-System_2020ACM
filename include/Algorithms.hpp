@@ -2,7 +2,9 @@
 #define TICKET_SYSTEM_2020ACM_ALGORITHMS_HPP
 
 #include "vector.hpp"
-using namespace sjtu;
+#include <vector>
+using namespace std;
+//using namespace sjtu;
 
 template<class T>
 T *upper_bound(T *begin, T *end, T num){

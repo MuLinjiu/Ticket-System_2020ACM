@@ -55,6 +55,7 @@ namespace sjtu {
 
             iterator operator+(const int &n) const {
                 //TODO
+                if(pos + 1 == this->vec->endd)this->vec->expand();
                 return iterator(this->vec,this->pointer,this->pos + n);
             }
             iterator operator-(const int &n) const {
@@ -89,6 +90,7 @@ namespace sjtu {
              */
             iterator operator++(int) {
                 iterator a(*this);
+                if(pos + 1 == this->vec->endd)this->vec->expand();
                 pos++;
                 return a;
             }
@@ -96,6 +98,7 @@ namespace sjtu {
              * TODO ++iter
              */
             iterator& operator++() {
+                if(pos + 1 == this->vec->endd)this->vec->expand();
                 pos++;
                 return *this;
             }
@@ -215,6 +218,7 @@ namespace sjtu {
              */
             const_iterator operator++(int) {
                 const_iterator a(*this);
+                if(pos + 1 == this->vec->endd)this->vec->expand();
                 pos++;
                 pointer = vec->first[pos];
                 return a;
@@ -223,6 +227,7 @@ namespace sjtu {
              * TODO ++iter
              */
             const_iterator& operator++() {
+                if(pos + 1 == this->vec->endd)this->vec->expand();
                 pos++;
                 return *this;
             }
