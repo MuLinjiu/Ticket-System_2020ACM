@@ -48,10 +48,10 @@ public:
     USER_ALL() : user_tree("user"), user_data("data_user.dat"), order_tree("order"), order_data("data_order.dat") {}
 
     bool checkadduser(const String &cur,const String &us,int p){
+        if(user_online.find(cur) == user_online.end())return false;
         vector<int> possibleoffset = user_tree.search(cur);
         vector<int> possibleoffset2 = user_tree.search(us);
         if(possibleoffset.empty() || !possibleoffset2.empty())return false;
-        if(user_online.find(cur) == user_online.end())return false;
         user cur_user;
         user_data.read(possibleoffset[0], cur_user);
         if(cur_user.privilege <= p)return false;
@@ -59,9 +59,9 @@ public:
     }
 
     bool checkquerypofile(const String &cur,const String &us){
+        if(user_online.find(cur) == user_online.end())return false;
         vector<int>possibleoffset = user_tree.search(cur);
         vector<int>possibleoffset2 = user_tree.search(us);
-        if(user_online.find(cur) == user_online.end())return false;
         if(possibleoffset.empty() || possibleoffset2.empty())return false;
         if(us == cur)return true;
         user cur_user,query_user;
@@ -71,9 +71,9 @@ public:
     }
 
     bool checkmodifypofile(const String &cur,const String &us,int c){
+        if(user_online.find(cur) == user_online.end())return false;
         vector<int>possibleoffset = user_tree.search(cur);
         vector<int>possibleoffset2 = user_tree.search(us);
-        if(user_online.find(cur) == user_online.end())return false;
         if(possibleoffset.empty() || possibleoffset2.empty())return false;
         if(us == cur)return true;
         user cur_user,query_user;
@@ -151,7 +151,7 @@ public:
         if (res.num >= n){
             res.status = "success", res.num = n;
             train.buy_ticket(id, d, n, f, t);
-            cout << res.price * n << endl;
+            cout << (long long)res.price * n << endl;
         } else {
             res.status = "pending", res.num = n;
             train.queue(id, res);
