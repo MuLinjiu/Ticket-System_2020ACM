@@ -75,9 +75,9 @@ public:
         vector<int>possibleoffset = user_tree.search(cur);
         vector<int>possibleoffset2 = user_tree.search(us);
         if(possibleoffset.empty() || possibleoffset2.empty())return false;
-        if(us == cur)return true;
         user cur_user,query_user;
         user_data.read(possibleoffset[0],cur_user),user_data.read(possibleoffset2[0],query_user);
+        if(us == cur && cur_user.privilege > c)return true;
         if(cur_user.privilege <= query_user.privilege || cur_user.privilege <= c)return false;
         else return true;
     }
