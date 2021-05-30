@@ -13,9 +13,9 @@ class Date{
 	}
 
 private:
-    int yr = 0;
 	int mm, dd, hr, mi;
 	static const int days[12];
+	static const int sum[13];
 
 	static void print(ostream &os, int x){
 		if (x == 0){
@@ -56,13 +56,13 @@ public:
 		ret.dd += ret.hr / 24, ret.hr %= 24;
 		while (ret.dd > days[ret.mm-1]){
 			ret.dd -= days[ret.mm-1];
-			if (++ret.mm > 12) ret.yr++, ret.mm = 1;
+			if (++ret.mm > 12) ret.mm = 1;
 		}
 		return ret;
 	}
 
 	Date operator+(const Date &x) const{
-	    return *this + (x - Date());
+	    return *this + int(x);
 	}
 
 	Date operator-(int x) const{
@@ -73,7 +73,7 @@ public:
 		ret.dd += ret.hr / 24, ret.hr %= 24;
 		if (ret.hr < 0) ret.dd--, ret.hr += 24;
 		while (ret.dd < 0){
-			if (--ret.mm <= 0) ret.yr--, ret.mm += 12;
+			if (--ret.mm <= 0) ret.mm += 12;
 			ret.dd += days[ret.mm-1];
 		}
 		return ret;
@@ -112,7 +112,7 @@ public:
 	}
 
 	bool operator==(const Date &other) const{
-		return yr == other.yr && mm == other.mm && dd == other.dd && hr == other.hr && mi == other.mi;
+		return mm == other.mm && dd == other.dd && hr == other.hr && mi == other.mi;
 	}
 
 	bool operator!=(const Date &other) const{
@@ -120,7 +120,6 @@ public:
 	}
 
 	bool operator<(const Date &other) const{
-        if (yr != other.yr) return yr < other.yr;
 		if (mm != other.mm) return mm < other.mm;
 		if (dd != other.dd) return dd < other.dd;
 		if (hr != other.hr) return hr < other.hr;
@@ -140,19 +139,16 @@ public:
 	}
 
 	int operator-(const Date &other) const{
-		int sign = 1;
-		if (*this < other) sign = -1;
-		int l = 0, r = 550000;
-		while (l + 1 < r){
-			int mid = (l + r) >> 1;
-			if ((sign == 1 && other + mid <= *this) || (sign == -1 && *this + mid <= other))
-				l = mid; else r = mid;
-		}
-		return l * sign;
+	    return int(*this) - int(other);
+	}
+
+	explicit operator int() const{
+        return (sum[mm-1] + dd - 1) * 1440 + hr * 60 + mi;
 	}
 
 };
 
 const int Date::days[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+const int Date::sum[13] = {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365};
 
 #endif //TICKET_SYSTEM_2020ACM_DATE_HPP
