@@ -14,8 +14,5 @@ TRAIN_ALL trainAll;
 
 int main(){
     while(run_program()) {}
-//    vector<int> a;
-//    for(int i = 1 ; i <= 10000 ; i++)a.push_back(i);
-//    for(auto x : a)cout << x << " ";
 	return 0;
 }

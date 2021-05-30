@@ -240,6 +240,14 @@ public:
 		return true;
 	}
 
+    void modify(const Key &key, int offset){
+        node x = search(root, key);
+        int ptr = lower_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
+        if (ptr < x.num_keys && x.keys[ptr] == key) {
+            if ((x.birec[ptr].index += offset) == 0) erase(key);
+        } else insert(key, offset);
+    }
+
 	int erase(const Key &key){
 		auto ret = erase(root, key);
 		if (!ret.second) return 0;

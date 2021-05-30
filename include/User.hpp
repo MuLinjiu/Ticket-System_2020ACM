@@ -141,7 +141,7 @@ public:
         vector<int> users = user_tree.search(u);
         if (users.empty()) throw("cannot find the user");
         if (user_online.find(u) == user_online.end()) throw("user haven't login");
-        Order res = train.query_ticket(id, d, f, t);
+        Order res = train.query_ticket(id, d, f, t, n);
         if (res.num < n && !q) throw("no ticket");
         user cur_user;
         user_data.read(users[0], cur_user);

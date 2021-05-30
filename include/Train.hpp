@@ -12,10 +12,9 @@ using namespace std;
 class TRAIN_ALL {
 private:
     static const int Num = 101;
-    static const int Max_Seats = 100000;
     struct train {
         String trainID;
-        int stationNum;
+        int stationNum, maxSeats;
         String stations[Num];
         int prices[Num], seats[Num][Num]; // from 1 to stationNum - 1
         Date startTime;
@@ -77,7 +76,7 @@ private:
         for (auto &index : candidates){
             order_data.read(index, x);
             if (x.status != "pending") continue;
-            Order res = query_ticket(x.trainID, x.startTime.getdate(), x.startStation, x.endStation);
+            Order res = query_ticket(x.trainID, x.startTime.getdate(), x.startStation, x.endStation, x.num);
             if (res.num >= x.num) {
                 x.status = "success";
                 buy_ticket(x.trainID, x.startTime.getdate(), x.num, x.startStation, x.endStation);
@@ -93,7 +92,7 @@ public:
 
     void add_train(const String &id, int n, int m, const String *s, int *p, const Date &x, int *t, int *o, const pair<Date, Date> &d, char y){
         train tmp;
-        tmp.trainID = id, tmp.stationNum = n, tmp.startTime = x, tmp.saleDate = d, tmp.type = y, tmp.released = false;
+        tmp.trainID = id, tmp.stationNum = n, tmp.maxSeats = m, tmp.startTime = x, tmp.saleDate = d, tmp.type = y, tmp.released = false;
         for (int i = 1; i <= n; ++i) tmp.stations[i] = s[i];
         for (int i = 1; i < n; ++i) tmp.prices[i] = p[i], tmp.travelTimes[i] = t[i];
         for (int i = 0; i <= (d.second - d.first) / 1440; ++i)
@@ -171,7 +170,7 @@ public:
             if (!x.released) continue;
             Date cur = x.startTime;
             Date start_time, end_time, duration;
-            int cost_price = 0, seats = Max_Seats;
+            int cost_price = 0, seats = x.maxSeats;
             bool aboard = false, ashore = false;
             for (int i = 1; i <= x.stationNum; ++i){
                 if (x.stations[i] == t){
@@ -229,7 +228,7 @@ public:
                         if (!y.released) continue;
                         Date cur2 = y.startTime;
                         Date start_time2, end_time2, duration2, d2;
-                        int cost_price2 = 0, seats2 = Max_Seats;
+                        int cost_price2 = 0, seats2 = y.maxSeats;
                         bool aboard = false, ashore = false;
                         for (int j = 1; j <= y.stationNum; ++j){
                             if (y.stations[j] == t){
@@ -289,14 +288,15 @@ public:
         else cout << optimal.first << endl << optimal.second << endl;
     }
 
-    Order query_ticket(const String &id, const Date &d, const String &f, const String &t){
+    Order query_ticket(const String &id, const Date &d, const String &f, const String &t, int n){
         vector<int> res = train_id.search(id);
         if (res.empty()) throw("cannot find the train");
         train x; train_data.read(res[0], x);
         if (!x.released) throw("have not released");
+        if (n > x.maxSeats) throw("exceed maximum seats");
         Date cur = x.startTime;
         Date start_time, end_time, duration;
-        int cost_price = 0, seats = Max_Seats;
+        int cost_price = 0, seats = x.maxSeats;
         bool aboard = false, ashore = false;
         for (int i = 1; i <= x.stationNum; ++i){
             if (x.stations[i] == t){
