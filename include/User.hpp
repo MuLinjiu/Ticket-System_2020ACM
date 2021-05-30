@@ -131,7 +131,7 @@ public:
             if(!password.empty()) cur_user.password = password;
             if(!name.empty()) cur_user.name = name;
             if(!add.empty()) cur_user.address = add;
-            if(pr != 0) cur_user.privilege = pr;
+            if(pr != -1) cur_user.privilege = pr;
             user_data.write(possibleoffset[0], cur_user);
             cout << cur_user << endl;
         }

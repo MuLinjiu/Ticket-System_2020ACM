@@ -217,7 +217,7 @@ bool run_program(){
     }
     else if(command == "modify_profile"){
         String a,cur_username,username,password,name,add;
-        int p = 0;
+        int p = -1;
         while(getchar() == ' '){
             cin >> a;
             switch(a[1]){
@@ -373,7 +373,7 @@ bool run_program(){
         cout << 0 << endl;
     }
     else if(command == "query_ticket"){
-        String start,end,da,p = "cost";
+        String start,end,da,p = "time";
         while(getchar() == ' ') {
             String a;
             cin >> a;
@@ -404,7 +404,7 @@ bool run_program(){
         }
     }
     else if(command == "query_transfer"){
-        String start,end,da,p = "cost";
+        String start,end,da,p = "time";
         while(getchar() == ' ') {
             String a;
             cin >> a;
