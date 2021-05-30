@@ -80,7 +80,7 @@ private:
             if (res.num >= x.num) {
                 x.status = "success";
                 buy_ticket(x.trainID, x.startTime.getdate(), x.num, x.startStation, x.endStation);
-                order_data.write(index, x);
+                order_data.erase(train_order.erase(make_pair(id, x.pending_num)));
                 ret.push_back(x);
             }
         }
@@ -345,14 +345,8 @@ public:
     }
 
     vector<Order> refund(const Order &order){
-        if (order.pending_num) {
-            vector<int> res = train_order.search(make_pair(order.trainID, order.pending_num));
-            if (res.size() != 1) throw("cannot find pending num");
-            Order cur_order;
-            order_data.read(res[0], cur_order);
-            cur_order.status = "refunded";
-            order_data.write(res[0], cur_order);
-        }
+        if (order.pending_num)
+            order_data.erase(train_order.erase(make_pair(order.trainID, order.pending_num)));
         if (order.status == "pending"){
             return vector<Order>();
         } else {
