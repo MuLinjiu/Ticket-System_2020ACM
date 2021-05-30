@@ -373,7 +373,7 @@ bool run_program(){
         cout << 0 << endl;
     }
     else if(command == "query_ticket"){
-        String start,end,da,p = "time";
+        String start,end,da,p = "cost";
         while(getchar() == ' ') {
             String a;
             cin >> a;
@@ -404,7 +404,7 @@ bool run_program(){
         }
     }
     else if(command == "query_transfer"){
-        String start,end,da,p = "time";
+        String start,end,da,p = "cost";
         while(getchar() == ' ') {
             String a;
             cin >> a;

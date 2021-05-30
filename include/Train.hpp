@@ -44,7 +44,6 @@ private:
     BpTree<pair<String, int>> train_order;
     Storage_IO<Order> order_data;
     vector<ticket> valid;
-    static Date standard_start;
 
     template<class T, class U>
     static bool equal(const pair<T, U> &lhs, const pair<T, U> &rhs) {
@@ -58,15 +57,23 @@ private:
     }
 
     static bool cmp_by_standard_time(const ticket &lhs, const ticket &rhs) {
-        if (lhs.endTime - TRAIN_ALL::standard_start == rhs.endTime - TRAIN_ALL::standard_start)
+        if (lhs.endTime == rhs.endTime)
             return lhs.trainID < rhs.trainID;
-        else return lhs.endTime - TRAIN_ALL::standard_start < rhs.endTime - TRAIN_ALL::standard_start;
+        else return lhs.endTime < rhs.endTime;
     }
 
     static bool cmp_by_cost(const ticket &lhs, const ticket &rhs) {
         if (lhs.cost_price == rhs.cost_price)
             return lhs.trainID < rhs.trainID;
         else return lhs.cost_price < rhs.cost_price;
+    }
+
+    static bool less(const pair<ticket, ticket> &lhs, const pair<ticket, ticket> &rhs){
+        if (lhs.first.cost_time != rhs.first.cost_time)
+            return lhs.first.cost_time < rhs.first.cost_time;
+        else if (lhs.first.trainID != rhs.first.trainID)
+            return lhs.first.trainID < rhs.first.trainID;
+        else return lhs.second.trainID < rhs.second.trainID;
     }
 
     vector<Order> recover(const String &id){
@@ -254,7 +261,6 @@ public:
                             valid.push_back((ticket){y.trainID, start_time2, end_time2, x.stations[i], t, seats2, cost_time2, cost_price2});
                         }
                     }
-                    TRAIN_ALL::standard_start = start_time;
                     sort(valid.begin(), valid.end(), p == "time" ? cmp_by_standard_time : cmp_by_cost);
                     int j = 0;
                     while (j < valid.size() && valid[j].trainID == x.trainID) j++;
@@ -264,12 +270,14 @@ public:
                         else {
                             if (p == "time"){
                                 if (valid[j].endTime - start_time == optimal.second.endTime - optimal.first.startTime) {
-                                    if (tmp.cost_time < optimal.first.cost_time) optimal = make_pair(tmp, valid[j]);
+                                    auto other = make_pair(tmp, valid[j]);
+                                    if (less(other, optimal)) optimal = other;
                                 } else if (valid[j].endTime - start_time < optimal.second.endTime - optimal.first.startTime)
                                     optimal = make_pair(tmp, valid[j]);
                             } else {
                                 if (valid[j].cost_price + cost_price == optimal.first.cost_price + optimal.second.cost_price) {
-                                    if (tmp.cost_time < optimal.first.cost_time) optimal = make_pair(tmp, valid[j]);
+                                    auto other = make_pair(tmp, valid[j]);
+                                    if (less(other, optimal)) optimal = other;
                                 } else if (valid[j].cost_price + cost_price < optimal.first.cost_price + optimal.second.cost_price)
                                     optimal = make_pair(tmp, valid[j]);
                             }
@@ -372,7 +380,5 @@ public:
     }
 
 };
-
-Date TRAIN_ALL::standard_start;
 
 #endif //TICKET_SYSTEM_2020ACM_TRAIN_HPP
