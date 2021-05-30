@@ -9,7 +9,7 @@
 using namespace std;
 //using namespace sjtu;
 
-template<class Key, class Value>
+template<class Key>
 class BpTree{
 private:
 	static const int M = 300; // Maximum number of fans out
@@ -29,7 +29,6 @@ private:
 	int root;
 	string file_name;
 	Storage_IO<node> bpt_node_file;
-	Storage_IO<Value> data_file;
 	fstream bpt_basic_file;
 
 	static bool equal(const Key &lhs, const Key &rhs) { return lhs == rhs; }
@@ -83,22 +82,24 @@ private:
 		bpt_node_file.write(current, x), bpt_node_file.write(child, y);
 	}
 
-	void insert(int current, const Key &key, int index){ // current-x, child-y, new_child-z
+	bool insert(int current, const Key &key, int index){ // current-x, child-y, new_child-z
 		node x, y;
 		int ptr = 0, child;
 		bpt_node_file.read(current, x);
 		if (x.is_leaf){
-			ptr = upper_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
+			ptr = lower_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
+			if (x.keys[ptr] == key) return false;
 			for (int i = x.num_keys; i > ptr; i--)
 				x.keys[i] = x.keys[i-1], x.birec[i].index = x.birec[i-1].index;
 			x.num_keys++;
 			x.keys[ptr] = key, x.birec[ptr].index = index;
 			bpt_node_file.write(current, x);
-			return ;
+			return true;
 		}
 		ptr = upper_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
 		child = x.birec[ptr].child;
-		insert(child, key, index);
+		bool ret = insert(child, key, index);
+		if (!ret) return false;
 		bpt_node_file.read(child, y);
 		if (y.is_leaf && y.num_keys > M || !y.is_leaf && y.num_keys >= M){
 			int new_child = split(child, y);
@@ -111,29 +112,31 @@ private:
 			x.birec[ptr].child = child, x.birec[ptr+1].child = new_child;
 			bpt_node_file.write(current, x);
 		}
+		return true;
 	}
 
-	pair<bool, Key> erase(int current, const Key &key){ // current-x, child-y
+	pair<pair<bool, Key>, int> erase(int current, const Key &key){ // current-x, child-y
 		node x, y, z;
 		int ptr = 0, child, neighbor;
 		bpt_node_file.read(current, x);
 		if (x.is_leaf){
 			ptr = lower_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
+			int index = x.keys[ptr] == key ? x.birec[ptr].index : 0;
 			x.num_keys--;
 			for (int i = ptr; i < x.num_keys; i++)
 				x.keys[i] = x.keys[i+1], x.birec[i].index = x.birec[i+1].index;
 			bpt_node_file.write(current, x);
-			if (!ptr) return make_pair(true, x.keys[0]);
-			else return make_pair(false, Key());
+			if (!ptr) return make_pair(make_pair(true, x.keys[0]), index);
+			else return make_pair(make_pair(false, Key()), index);
 		}
 		ptr = upper_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
 		child = x.birec[ptr].child;
 		auto ret = erase(child, key);
 		bpt_node_file.read(child, y);
-		if (ret.first && ptr){
-			x.keys[ptr-1] = ret.second;
+		if (ret.first.first && ptr){
+			x.keys[ptr-1] = ret.first.second;
 			bpt_node_file.write(current, x);
-			ret = make_pair(false, Key());
+			ret = make_pair(make_pair(false, Key()), ret.second);
 		}
 		if (y.is_leaf && y.num_keys <= (M - 1) / 2 || !y.is_leaf && y.num_keys < (M - 1) / 2){
 			if (ptr == x.num_keys) neighbor = x.birec[ptr-1].child;
@@ -191,7 +194,7 @@ private:
 public:
 	BpTree() = default;
 
-	BpTree(string file_name) : file_name(file_name), bpt_node_file("bpt_" + file_name + "_node.dat"), data_file("data_" + file_name + ".dat"){
+	BpTree(string file_name) : file_name(file_name), bpt_node_file("bpt_" + file_name + "_node.dat"){
 		bpt_basic_file.open("bpt_" + file_name + "_basic.dat", ios::in | ios::out | ios::binary);
 		if (!bpt_basic_file){
 			node tmp;
@@ -210,7 +213,7 @@ public:
 	~BpTree(){ bpt_basic_file.close(); }
 
 	void clear(){
-	    bpt_node_file.clear(), data_file.clear();
+	    bpt_node_file.clear();
 	    bpt_basic_file.close();
 	    bpt_basic_file.open("bpt_" + file_name + "_basic.dat", ios::out | ios::binary);
         node tmp;
@@ -221,12 +224,9 @@ public:
         bpt_basic_file.open("bpt_" + file_name + "_basic.dat", ios::in | ios::out | ios::binary);
 	}
 
-	bool insert(const Key &key, const Value &val){
-		node x = search(root, key), y;
-		int ptr = lower_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
-		if (ptr < x.num_keys && x.keys[ptr] == key) return false;
-		int index = data_file.write(val);
-		insert(root, key, index);
+	bool insert(const Key &key, int index){
+		if (!insert(root, key, index)) return false;
+		node x, y;
 		bpt_node_file.read(root, x);
 		if (x.is_leaf && x.num_keys > M || !x.is_leaf && x.num_keys >= M){
 			int new_child = split(root, x);
@@ -240,17 +240,9 @@ public:
 		return true;
 	}
 
-	bool modify(const Key &key, const Value &val){
-        node x = search(root, key);
-        int ptr = lower_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
-        if (ptr < x.num_keys && x.keys[ptr] == key) {
-            data_file.write(x.birec[ptr].index, val);
-            return true;
-        } else return false;
-	}
-
-	void erase(const Key &key){
-		erase(root, key);
+	int erase(const Key &key){
+		auto ret = erase(root, key);
+		if (!ret.second) return 0;
 		node x; bpt_node_file.read(root, x);
 		if (!x.num_keys && !x.is_leaf){
 			bpt_node_file.erase(root);
@@ -258,23 +250,23 @@ public:
 			bpt_basic_file.seekp(0);
 			bpt_basic_file.write(reinterpret_cast<char *> (&root), sizeof(int));
 		}
+		return ret.second;
 	}
 
-	vector<Value> search(const Key &key, bool (*equ)(const Key &, const Key &) = equal){
+	vector<int> search(const Key &key, bool (*equ)(const Key &, const Key &) = equal){
 		node x = search(root, key);
 		int ptr = lower_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
 		if (ptr == x.num_keys){
-			if (!x.succ) return vector<Value>();
+			if (!x.succ) return vector<int>();
 			else {
 				bpt_node_file.read(x.succ, x);
 				ptr = 0;
 			}
 		}
-		vector<Value> ret;
+		static vector<int> ret;
+		ret.clear();
 		while(equ(x.keys[ptr], key)){
-			Value val;
-			data_file.read(x.birec[ptr].index, val);
-			ret.push_back(val);
+			ret.push_back(x.birec[ptr].index);
 			if (++ptr >= x.num_keys){
 				if (!x.succ) break;
 				bpt_node_file.read(x.succ, x);

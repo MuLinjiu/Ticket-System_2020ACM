@@ -33,9 +33,11 @@ private:
         }
     };
 
-    BpTree<String, user> user_tree;
-    BpTree<pair<String, int>, Order> order_tree;
-    sjtu::map<String, user> user_online;
+    BpTree<String> user_tree;
+    Storage_IO<user> user_data;
+    BpTree<pair<String, int>> order_tree;
+    Storage_IO<Order> order_data;
+    sjtu::map<String, bool> user_online;
 
     template<class T, class U>
     static bool equal(const pair<T, U> &lhs, const pair<T, U> &rhs) {
@@ -43,52 +45,61 @@ private:
     }
 
 public:
-    USER_ALL() : user_tree("user"), order_tree("order") {}
+    USER_ALL() : user_tree("user"), user_data("data_user.dat"), order_tree("order"), order_data("data_order.dat") {}
 
     bool checkadduser(const String &cur,const String &us,int p){
-        vector<user>possibleoffset = user_tree.search(cur);
-        vector<user>possibleoffset2 = user_tree.search(us);
+        vector<int> possibleoffset = user_tree.search(cur);
+        vector<int> possibleoffset2 = user_tree.search(us);
         if(possibleoffset.empty() || !possibleoffset2.empty())return false;
         if(user_online.find(cur) == user_online.end())return false;
-        if(possibleoffset[0].privilege <= p)return false;
+        user cur_user;
+        user_data.read(possibleoffset[0], cur_user);
+        if(cur_user.privilege <= p)return false;
         else return true;
     }
 
     bool checkquerypofile(const String &cur,const String &us){
-        vector<user>possibleoffset = user_tree.search(cur);
-        vector<user>possibleoffset2 = user_tree.search(us);
+        vector<int>possibleoffset = user_tree.search(cur);
+        vector<int>possibleoffset2 = user_tree.search(us);
         if(user_online.find(cur) == user_online.end())return false;
         if(possibleoffset.empty() || possibleoffset2.empty())return false;
         if(us == cur)return true;
-        if(possibleoffset[0].privilege <= possibleoffset2[0].privilege)return false;
+        user cur_user,query_user;
+        user_data.read(possibleoffset[0],cur_user),user_data.read(possibleoffset2[0],query_user);
+        if(cur_user.privilege <= query_user.privilege)return false;
         else return true;
     }
 
     bool checkmodifypofile(const String &cur,const String &us,int c){
-        vector<user>possibleoffset = user_tree.search(cur);
-        vector<user>possibleoffset2 = user_tree.search(us);
+        vector<int>possibleoffset = user_tree.search(cur);
+        vector<int>possibleoffset2 = user_tree.search(us);
         if(user_online.find(cur) == user_online.end())return false;
         if(possibleoffset.empty() || possibleoffset2.empty())return false;
         if(us == cur)return true;
-        if(possibleoffset[0].privilege <= possibleoffset2[0].privilege || possibleoffset[0].privilege <= c)return false;
+        user cur_user,query_user;
+        user_data.read(possibleoffset[0],cur_user),user_data.read(possibleoffset2[0],query_user);
+        if(cur_user.privilege <= query_user.privilege || cur_user.privilege <= c)return false;
         else return true;
     }
 
     void add_user(const String & u, const String & pa, const String & n,const String & add, int p){
         user tmp(u,pa,n,add,p);
-        if(!user_tree.insert(u,tmp)){
+        int index = user_data.write(tmp);
+        if(!user_tree.insert(u, index)){
             throw("invalid_insert");
         }
     }
 
     void login(const String & userna, const String & pas){
-        vector<user>possibleoffset = user_tree.search(userna);
+        vector<int>possibleoffset = user_tree.search(userna);
         if(possibleoffset.empty()){
             throw("cannot find the user");
         }else{
             if(user_online.find(userna) == user_online.end()) {
-                if(possibleoffset[0].password == pas) {
-                    user_online[userna] = possibleoffset[0];
+                user cur_user;
+                user_data.read(possibleoffset[0], cur_user);
+                if(cur_user.password == pas) {
+                    user_online[userna] = true;
                 }else throw("wrong pass");
             }else {
                 throw("user is online");
@@ -102,34 +113,40 @@ public:
     }
 
     void query_pofile(const String & a){
-        vector<user>possibleoffset = user_tree.search(a);
+        vector<int>possibleoffset = user_tree.search(a);
         if(possibleoffset.empty())throw("cannot find the user");
         else {
-            cout << possibleoffset[0].username << " " << possibleoffset[0].name << " " << possibleoffset[0].address << " " << possibleoffset[0].privilege << endl;
+            user cur_user;
+            user_data.read(possibleoffset[0], cur_user);
+            cout << cur_user << endl;
         }
     }
 
     void modify_profile(const String & usern,const String & password, const String &name, const String &add, int pr){
-        vector<user>possibleoffset = user_tree.search(usern);
+        vector<int>possibleoffset = user_tree.search(usern);
         if(possibleoffset.empty())throw("cannot find the user");
         else{
-            if(!password.empty())possibleoffset[0].password = password;
-            if(!name.empty())possibleoffset[0].name = name;
-            if(!add.empty())possibleoffset[0].address = add;
-            if(pr != 0)possibleoffset[0].privilege = pr;
-            user_tree.modify(usern,possibleoffset[0]);
-            cout << possibleoffset[0] << endl;
+            user cur_user;
+            user_data.read(possibleoffset[0], cur_user);
+            if(!password.empty()) cur_user.password = password;
+            if(!name.empty()) cur_user.name = name;
+            if(!add.empty()) cur_user.address = add;
+            if(pr != 0) cur_user.privilege = pr;
+            user_data.write(possibleoffset[0], cur_user);
+            cout << cur_user << endl;
         }
     }
 
     void buy_ticket(TRAIN_ALL &train, const String &u, const String &id, const Date &d, int n, const String &f, const String &t, bool q){
-        vector<user> users = user_tree.search(u);
+        vector<int> users = user_tree.search(u);
         if (users.empty()) throw("cannot find the user");
         if (user_online.find(u) == user_online.end()) throw("user haven't login");
         Order res = train.query_ticket(id, d, f, t);
         if (res.num < n && !q) throw("no ticket");
-        res.order_num = ++users[0].num_order;
-        user_tree.modify(u, users[0]);
+        user cur_user;
+        user_data.read(users[0], cur_user);
+        res.order_num = ++cur_user.num_order;
+        user_data.write(users[0], cur_user);
         res.userID = u;
         if (res.num >= n){
             res.status = "success", res.num = n;
@@ -140,36 +157,43 @@ public:
             train.queue(id, res);
             cout << "queue" << endl;
         }
-        order_tree.insert(make_pair(u, res.order_num), res);
+        order_tree.insert(make_pair(u, res.order_num), order_data.write(res));
     }
 
     void query_order(const String &u){
-        vector<user> users = user_tree.search(u);
-        if (users.empty()) throw("cannot find the user");
         if (user_online.find(u) == user_online.end()) throw("user haven't login");
-        vector<Order> res = order_tree.search(make_pair(u, 0), equal);
+        vector<int> res = order_tree.search(make_pair(u, 0), equal);
         cout << res.size() << endl;
-        for (int i = (int)res.size() - 1; i >= 0; --i)
-            cout << res[i] << endl;
+        for (int i = (int)res.size() - 1; i >= 0; --i) {
+            Order cur_order;
+            order_data.read(res[i], cur_order);
+            cout << cur_order << endl;
+        }
     }
 
     void refund_ticket(TRAIN_ALL &train, const String &u, int n = 1){
-        vector<user> users = user_tree.search(u);
+        vector<int> users = user_tree.search(u);
         if (users.empty()) throw("cannot find the user");
         if (user_online.find(u) == user_online.end()) throw("user haven't login");
-        n = users[0].num_order - n + 1;
-        vector<Order> res = order_tree.search(make_pair(u, n));
+        user cur_user;
+        user_data.read(users[0], cur_user);
+        n = cur_user.num_order - n + 1;
+        vector<int> res = order_tree.search(make_pair(u, n));
         if (res.size() != 1) throw("cannot find the order");
-        if (res[0].status == "refunded") throw("already refunded");
-        auto updated = train.refund(res[0]);
-        for (const auto &x : updated)
-            order_tree.modify(make_pair(x.userID, x.order_num), x);
-        res[0].status = "refunded";
-        order_tree.modify(make_pair(u, n), res[0]);
+        Order cur_order;
+        order_data.read(res[0], cur_order);
+        if (cur_order.status == "refunded") throw("already refunded");
+        auto updated = train.refund(cur_order);
+        for (const auto &x : updated) {
+            vector<int> res = order_tree.search(make_pair(x.userID, x.order_num));
+            order_data.write(res[0], x);
+        }
+        cur_order.status = "refunded";
+        order_data.write(res[0], cur_order);
     }
 
     void clean(){
-        user_online.clear(), user_tree.clear(), order_tree.clear();
+        user_online.clear(), user_tree.clear(), order_tree.clear(), user_data.clear(), order_data.clear();
     }
 
 };
