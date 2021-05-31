@@ -7,7 +7,7 @@ using namespace std;
 //using namespace sjtu;
 
 template<class T>
-T *upper_bound(T *begin, T *end, T num){
+T *upper_bound(T *begin, T *end, const T &num){
     int l = -1, r = end - begin;
     while (l + 1 < r){
         int mid = (l + r) >> 1;
@@ -17,7 +17,7 @@ T *upper_bound(T *begin, T *end, T num){
 }
 
 template<class T>
-T *lower_bound(T *begin, T *end, T num){
+T *lower_bound(T *begin, T *end, const T &num){
     int l = -1, r = end - begin;
     while (l + 1 < r){
         int mid = (l + r) >> 1;
