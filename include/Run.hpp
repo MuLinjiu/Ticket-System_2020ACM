@@ -74,7 +74,7 @@ bool run_program(){
                 String name;
                 String add;
                 int p;
-                while(getchar() == ' '){
+                while(cin.get() == ' '){
                     cin >> a;
                     switch(a[1]){
                         case 'c':{
@@ -116,7 +116,7 @@ bool run_program(){
                 String name;
                 String add;
                 int p;
-                while(getchar() == ' '){
+                while(cin.get() == ' '){
                     cin >> a;
                     switch(a[1]){
                         case 'c':{
@@ -156,7 +156,7 @@ bool run_program(){
     }
     else if(command == "login"){
         String username, pass;
-        while(getchar() == ' ') {
+        while(cin.get() == ' ') {
             String a;
             cin >> a;
             switch(a[1]){
@@ -192,7 +192,7 @@ bool run_program(){
     }
     else if(command == "query_profile"){
         String username, cur;
-        while(getchar() == ' ') {
+        while(cin.get() == ' ') {
             String a;
             cin >> a;
             switch(a[1]){
@@ -218,7 +218,7 @@ bool run_program(){
     else if(command == "modify_profile"){
         String a,cur_username,username,password,name,add;
         int p = -1;
-        while(getchar() == ' '){
+        while(cin.get() == ' '){
             cin >> a;
             switch(a[1]){
                 case 'c':{
@@ -266,7 +266,7 @@ bool run_program(){
         int p[101];
         int stopover[101];
         int t[101];
-        while(getchar() == ' '){
+        while(cin.get() == ' '){
             cin >> a;
             switch(a[1]){
                 case 'i':{
@@ -340,7 +340,7 @@ bool run_program(){
     else if(command == "query_train"){
         String trainid;
         String f;
-        while(getchar() == ' ') {
+        while(cin.get() == ' ') {
             String a;
             cin >> a;
             switch(a[1]){
@@ -374,7 +374,7 @@ bool run_program(){
     }
     else if(command == "query_ticket"){
         String start,end,da,p = "time";
-        while(getchar() == ' ') {
+        while(cin.get() == ' ') {
             String a;
             cin >> a;
             switch(a[1]){
@@ -405,7 +405,7 @@ bool run_program(){
     }
     else if(command == "query_transfer"){
         String start,end,da,p = "time";
-        while(getchar() == ' ') {
+        while(cin.get() == ' ') {
             String a;
             cin >> a;
             switch(a[1]){
@@ -432,7 +432,7 @@ bool run_program(){
     else if(command == "buy_ticket"){
         String username, trainID, date, start, end, q = "false";
         int num;
-        while(getchar() == ' ') {
+        while(cin.get() == ' ') {
             String a;
             cin >> a;
             switch(a[1]){
@@ -486,7 +486,7 @@ bool run_program(){
     else  if (command == "refund_ticket") {
         String username;
         int num = 1;
-        while(getchar() == ' ') {
+        while(cin.get() == ' ') {
             String a;
             cin >> a;
             switch(a[1]){

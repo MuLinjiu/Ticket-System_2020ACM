@@ -13,6 +13,7 @@ USER_ALL user_all;
 TRAIN_ALL trainAll;
 
 int main(){
+    std::ios::sync_with_stdio(false);
     while(run_program()) {}
 	return 0;
 }
