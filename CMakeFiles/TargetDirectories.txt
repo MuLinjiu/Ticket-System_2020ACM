@@ -1,3 +1,0 @@
-/mnt/d/Lhtie/Ticket-System_2020ACM/CMakeFiles/rebuild_cache.dir
-/mnt/d/Lhtie/Ticket-System_2020ACM/CMakeFiles/edit_cache.dir
-/mnt/d/Lhtie/Ticket-System_2020ACM/CMakeFiles/code.dir
