@@ -9,7 +9,7 @@
 using namespace std;
 //using namespace sjtu;
 
-template<class Key>
+template<class Key, class Value>
 class BpTree{
 private:
 	static const int M = 300; // Maximum number of fans out
@@ -18,12 +18,13 @@ private:
 		bool is_leaf;
 		int prec, succ;	// if node is leaf
 		Key keys[M + 10]; // 0-based
-		union birec{
-			int child, index;
-		} birec[M + 10]; // inner node: child; leaf: index
+		struct birec{
+			int child;
+			Value val;
+		} birec[M + 10]; // inner node: child; leaf: val
 
 		node() : num_keys(0), is_leaf(false), prec(0), succ(0){
-			memset(birec, 0, sizeof(birec));
+		    memset(birec, 0, sizeof(birec));
 		}
 	};
 	int root;
@@ -47,7 +48,7 @@ private:
 				bpt_node_file.write(z.succ, tmp);
 			}
 			for (int i = 0; i < r; ++i)
-				z.keys[i] = y.keys[l+i], z.birec[i].index = y.birec[l+i].index;
+				z.keys[i] = y.keys[l+i], z.birec[i].val = y.birec[l+i].val;
 		} else {
 			r--, z.num_keys--;
 			for (int i = 0; i < r; ++i)
@@ -62,7 +63,7 @@ private:
 	void merge(int current, node &x, int child, node &y, int neighbor, node &z, int ptr) {
 		if (y.is_leaf) {
 			for (int i = 0; i < z.num_keys; ++i, ++y.num_keys)
-				y.keys[y.num_keys] = z.keys[i], y.birec[y.num_keys].index = z.birec[i].index;
+				y.keys[y.num_keys] = z.keys[i], y.birec[y.num_keys].val = z.birec[i].val;
 			y.succ = z.succ;
 			if (z.succ){
 				node tmp; bpt_node_file.read(z.succ, tmp);
@@ -82,7 +83,7 @@ private:
 		bpt_node_file.write(current, x), bpt_node_file.write(child, y);
 	}
 
-	bool insert(int current, const Key &key, int index){ // current-x, child-y, new_child-z
+	bool insert(int current, const Key &key, const Value &val){ // current-x, child-y, new_child-z
 		node x, y;
 		int ptr = 0, child;
 		bpt_node_file.read(current, x);
@@ -90,15 +91,15 @@ private:
 			ptr = lower_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
 			if (x.keys[ptr] == key) return false;
 			for (int i = x.num_keys; i > ptr; i--)
-				x.keys[i] = x.keys[i-1], x.birec[i].index = x.birec[i-1].index;
+				x.keys[i] = x.keys[i-1], x.birec[i].val = x.birec[i-1].val;
 			x.num_keys++;
-			x.keys[ptr] = key, x.birec[ptr].index = index;
+			x.keys[ptr] = key, x.birec[ptr].val = val;
 			bpt_node_file.write(current, x);
 			return true;
 		}
 		ptr = upper_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
 		child = x.birec[ptr].child;
-		bool ret = insert(child, key, index);
+		bool ret = insert(child, key, val);
 		if (!ret) return false;
 		bpt_node_file.read(child, y);
 		if (y.is_leaf && y.num_keys > M || !y.is_leaf && y.num_keys >= M){
@@ -106,7 +107,7 @@ private:
 			for (int i = x.num_keys; i > ptr; i--)
 				x.keys[i] = x.keys[i-1];
 			for (int i = x.num_keys + 1; i > ptr; i--)
-				x.birec[i].index = x.birec[i-1].index;
+				x.birec[i].val = x.birec[i-1].val;
 			x.num_keys++;
 			x.keys[ptr] = y.keys[y.num_keys];
 			x.birec[ptr].child = child, x.birec[ptr+1].child = new_child;
@@ -121,13 +122,13 @@ private:
 		bpt_node_file.read(current, x);
 		if (x.is_leaf){
 			ptr = lower_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
-			int index = x.keys[ptr] == key ? x.birec[ptr].index : 0;
+			int val = x.keys[ptr] == key ? x.birec[ptr].val : 0;
 			x.num_keys--;
 			for (int i = ptr; i < x.num_keys; i++)
-				x.keys[i] = x.keys[i+1], x.birec[i].index = x.birec[i+1].index;
+				x.keys[i] = x.keys[i+1], x.birec[i].val = x.birec[i+1].val;
 			bpt_node_file.write(current, x);
-			if (!ptr) return make_pair(make_pair(true, x.keys[0]), index);
-			else return make_pair(make_pair(false, Key()), index);
+			if (!ptr) return make_pair(make_pair(true, x.keys[0]), val);
+			else return make_pair(make_pair(false, Key()), val);
 		}
 		ptr = upper_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
 		child = x.birec[ptr].child;
@@ -149,9 +150,9 @@ private:
 				if (ptr == x.num_keys){
 					if (y.is_leaf){
 						for (int i = y.num_keys; i > 0; --i)
-							y.keys[i] = y.keys[i-1], y.birec[i].index = y.birec[i-1].index;
+							y.keys[i] = y.keys[i-1], y.birec[i].val = y.birec[i-1].val;
 						y.num_keys++, z.num_keys--;
-						y.keys[0] = z.keys[z.num_keys], y.birec[0].index = z.birec[z.num_keys].index;
+						y.keys[0] = z.keys[z.num_keys], y.birec[0].val = z.birec[z.num_keys].val;
 						x.keys[ptr-1] = y.keys[0];
 					} else {
 						y.birec[y.num_keys+1].child = y.birec[y.num_keys].child;
@@ -164,9 +165,9 @@ private:
 				} else {
 					if (y.is_leaf){
 						y.num_keys++, z.num_keys--;
-						y.keys[y.num_keys-1] = z.keys[0], y.birec[y.num_keys-1].index = z.birec[0].index;
+						y.keys[y.num_keys-1] = z.keys[0], y.birec[y.num_keys-1].val = z.birec[0].val;
 						for (int i = 0; i < z.num_keys; ++i)
-							z.keys[i] = z.keys[i+1], z.birec[i].index = z.birec[i+1].index;
+							z.keys[i] = z.keys[i+1], z.birec[i].val = z.birec[i+1].val;
 						x.keys[ptr] = z.keys[0];
 					} else {
 						y.num_keys++, z.num_keys--;
@@ -183,10 +184,10 @@ private:
 		return ret;
 	}
 
-	node search(int current, const Key &key){
+	pair<int, node> search(int current, const Key &key){
 		node x;
 		bpt_node_file.read(current, x);
-		if (x.is_leaf) return x;
+		if (x.is_leaf) return make_pair(current, x);
 		int ptr = upper_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
 		return search(x.birec[ptr].child, key);
 	}
@@ -224,8 +225,8 @@ public:
         bpt_basic_file.open("bpt_" + file_name + "_basic.dat", ios::in | ios::out | ios::binary);
 	}
 
-	bool insert(const Key &key, int index){
-		if (!insert(root, key, index)) return false;
+	bool insert(const Key &key, const Value &val){
+		if (!insert(root, key, val)) return false;
 		node x, y;
 		bpt_node_file.read(root, x);
 		if (x.is_leaf && x.num_keys > M || !x.is_leaf && x.num_keys >= M){
@@ -234,19 +235,22 @@ public:
 			y.keys[0] = x.keys[x.num_keys];
 			y.birec[0].child = root, y.birec[1].child = new_child;
 			root = bpt_node_file.write(y);
-			bpt_basic_file.seekp(0);
-			bpt_basic_file.write(reinterpret_cast<char *> (&root), sizeof(int));
-		}
-		return true;
-	}
-
-    void modify(const Key &key, int offset){
-        node x = search(root, key);
-        int ptr = lower_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
-        if (ptr < x.num_keys && x.keys[ptr] == key) {
-            if ((x.birec[ptr].index += offset) == 0) erase(key);
-        } else insert(key, offset);
+            bpt_basic_file.seekp(0);
+            bpt_basic_file.write(reinterpret_cast<char *> (&root), sizeof(int));
+        }
+        return true;
     }
+
+    bool modify(const Key &key, const Value &val) {
+        pair<int, node> res = search(root, key);
+        node x = res.second;
+        int ptr = lower_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
+        if (ptr < x.num_keys && x.keys[ptr] == key){
+            x.birec[ptr].val = val;
+            bpt_node_file.write(res.first, x);
+            return true;
+        } else return false;
+	}
 
 	int erase(const Key &key){
 		auto ret = erase(root, key);
@@ -261,20 +265,20 @@ public:
 		return ret.second;
 	}
 
-	vector<int> search(const Key &key, bool (*equ)(const Key &, const Key &) = equal){
-		node x = search(root, key);
+	vector<Value> search(const Key &key, bool (*equ)(const Key &, const Key &) = equal){
+		node x = search(root, key).second;
 		int ptr = lower_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
 		if (ptr == x.num_keys){
-			if (!x.succ) return vector<int>();
+			if (!x.succ) return vector<Value>();
 			else {
 				bpt_node_file.read(x.succ, x);
 				ptr = 0;
 			}
 		}
-		static vector<int> ret;
+		static vector<Value> ret;
 		ret.clear();
 		while(equ(x.keys[ptr], key)){
-			ret.push_back(x.birec[ptr].index);
+			ret.push_back(x.birec[ptr].val);
 			if (++ptr >= x.num_keys){
 				if (!x.succ) break;
 				bpt_node_file.read(x.succ, x);

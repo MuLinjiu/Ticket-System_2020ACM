@@ -38,10 +38,10 @@ private:
         }
     };
 
-    BpTree<pair<String, String>> train_stations;
-    BpTree<String> train_id;
+    BpTree<pair<String, String>, int> train_stations;
+    BpTree<String, int> train_id;
     Storage_IO<train> train_data;
-    BpTree<pair<String, int>> train_order;
+    BpTree<pair<String, int>, int> train_order;
     Storage_IO<Order> order_data;
     vector<ticket> valid;
 

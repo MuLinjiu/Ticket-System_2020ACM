@@ -33,10 +33,9 @@ private:
         }
     };
 
-    BpTree<String> user_tree;
+    BpTree<String, int> user_tree;
     Storage_IO<user> user_data;
-    BpTree<pair<String, int>> order_tree;
-    Storage_IO<Order> order_data;
+    BpTree<pair<String, int>, Order> order_tree;
     sjtu::map<String, bool> user_online;
 
     template<class T, class U>
@@ -45,7 +44,7 @@ private:
     }
 
 public:
-    USER_ALL() : user_tree("user"), user_data("data_user.dat"), order_tree("order"), order_data("data_order.dat") {}
+    USER_ALL() : user_tree("user"), user_data("data_user.dat"), order_tree("order") {}
 
     bool checkadduser(const String &cur,const String &us,int p){
         if(user_online.find(cur) == user_online.end())return false;
@@ -157,18 +156,15 @@ public:
             train.queue(id, res);
             cout << "queue" << endl;
         }
-        order_tree.insert(make_pair(u, res.order_num), order_data.write(res));
+        order_tree.insert(make_pair(u, res.order_num), res);
     }
 
     void query_order(const String &u){
         if (user_online.find(u) == user_online.end()) throw("user haven't login");
-        vector<int> res = order_tree.search(make_pair(u, 0), equal);
+        vector<Order> res = order_tree.search(make_pair(u, 0), equal);
         cout << res.size() << endl;
-        for (int i = (int)res.size() - 1; i >= 0; --i) {
-            Order cur_order;
-            order_data.read(res[i], cur_order);
-            cout << cur_order << endl;
-        }
+        for (int i = (int)res.size() - 1; i >= 0; --i)
+            cout << res[i] << endl;
     }
 
     void refund_ticket(TRAIN_ALL &train, const String &u, int n = 1){
@@ -178,22 +174,19 @@ public:
         user cur_user;
         user_data.read(users[0], cur_user);
         n = cur_user.num_order - n + 1;
-        vector<int> res = order_tree.search(make_pair(u, n));
+        vector<Order> res = order_tree.search(make_pair(u, n));
         if (res.size() != 1) throw("cannot find the order");
-        Order cur_order;
-        order_data.read(res[0], cur_order);
+        Order &cur_order = res[0];
         if (cur_order.status == "refunded") throw("already refunded");
         auto updated = train.refund(cur_order);
-        for (const auto &x : updated) {
-            vector<int> res = order_tree.search(make_pair(x.userID, x.order_num));
-            order_data.write(res[0], x);
-        }
+        for (const auto &x : updated)
+            order_tree.modify(make_pair(x.userID, x.order_num), x);
         cur_order.status = "refunded";
-        order_data.write(res[0], cur_order);
+        order_tree.modify(make_pair(u, n), cur_order);
     }
 
     void clean(){
-        user_online.clear(), user_tree.clear(), order_tree.clear(), user_data.clear(), order_data.clear();
+        user_online.clear(), user_tree.clear(), order_tree.clear(), user_data.clear();
     }
 
 };
