@@ -37,12 +37,14 @@ public:
 
 	Date(int mm_, int dd_, int hr_, int mi_) : mm(mm_), dd(dd_), hr(hr_), mi(mi_) {}
 
-	void setdate(const Date &other){
+	Date &setdate(const Date &other){
 	    mm = other.mm, dd = other.dd;
+	    return *this;
 	}
 
-	void settime(const Date &other){
+	Date &settime(const Date &other){
 	    hr = other.hr, mi = other.mi;
+	    return *this;
 	}
 
 	Date getdate() const{ return {mm, dd, 0, 0}; }

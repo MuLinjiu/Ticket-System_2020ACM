@@ -120,13 +120,13 @@ private:
         return ret;
     }
 
-    pair<pair<bool, Key>, int> erase(int current, const Key &key){ // current-x, child-y
+    pair<pair<bool, Key>, Value> erase(int current, const Key &key){ // current-x, child-y
         node x, y, z;
         int ptr = 0, child, neighbor;
         bpt_node_file.read(current, x);
         if (x.is_leaf){
             ptr = lower_bound(x.keys, x.keys + x.num_keys, key) - x.keys;
-            int val = x.keys[ptr] == key ? x.birec[ptr].val : 0;
+            Value val = x.birec[ptr].val;
             x.num_keys--;
             for (int i = ptr; i < x.num_keys; i++)
                 x.keys[i] = x.keys[i+1], x.birec[i].val = x.birec[i+1].val;
@@ -259,9 +259,8 @@ public:
         } else return false;
     }
 
-    int erase(const Key &key){
+    Value erase(const Key &key){
         auto ret = erase(root, key);
-        if (!ret.second) return 0;
         node x; bpt_node_file.read(root, x);
         if (!x.num_keys && !x.is_leaf){
             bpt_node_file.erase(root);
