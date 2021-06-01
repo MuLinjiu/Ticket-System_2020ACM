@@ -8,6 +8,7 @@
 #include <functional>
 #include <cstddef>
 #include "exceptions.hpp"
+#include "utility.hpp"
 
 namespace sjtu {
 

@@ -236,7 +236,7 @@ public:
         if (!insert(root, key, val)) return false;
         node x, y;
         bpt_node_file.read(root, x);
-        if (x.is_leaf && x.num_keys > M || !x.is_leaf && x.num_keys >= M){
+            if (x.is_leaf && x.num_keys > M || !x.is_leaf && x.num_keys >= M){
             int new_child = split(root, x);
             y.num_keys = 1;
             y.keys[0] = x.keys[x.num_keys];
