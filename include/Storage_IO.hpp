@@ -3,7 +3,7 @@
 
 #include <fstream>
 #include <string>
-#include "map.hpp"
+#include "HashMap.hpp"
 using namespace std;
 
 template<class Value>
@@ -23,23 +23,25 @@ private:
 	}
 
 	class LRU {
-    private:
+	private:
+        static const int limit = 293;
+        static const int hashsize = 397;
+
         class Link_Map {
         private:
-            static const int limit = 300;
 
             struct node {
                 int index;
                 node *prev = nullptr;
                 node *next = nullptr;
 
-                node(const int &index_, node *prev = nullptr, node *next = nullptr) : index(index_), prev(prev),
-                                                                                      next(next) {}
+                node(const int &index_, node *prev = nullptr, node *next = nullptr)
+                    : index(index_), prev(prev), next(next) {}
             };
 
             node *head, *end;
             int size = 0;
-            sjtu::map<int, node *> pos;
+            HashMap<hashsize, int, node *> pos;
 
         public:
 
@@ -82,7 +84,7 @@ private:
                     no->next->prev = no->prev;
                     delete no;
                 }
-                pos.erase(pos.find(key));
+                pos.erase(key);
                 size--;
             }
 
@@ -99,7 +101,7 @@ private:
                     head->next = nullptr;
                     head->prev = nullptr;
                 }
-                pos[key] = no;
+                pos.insert(key, no);
                 size++;
                 if (size > limit) remove(head->index);
             }
@@ -111,7 +113,7 @@ private:
 
         class Cached_Link_Map : public Link_Map {
         private:
-            sjtu::map<int, Value> cache;
+            HashMap<hashsize, int, Value> cache;
 
         public:
             Cached_Link_Map() : Link_Map() {}
@@ -123,12 +125,12 @@ private:
 
             void remove(int key) override {
                 Link_Map::remove(key);
-                cache.erase(cache.find(key));
+                cache.erase(key);
             }
 
             void add(int key, const Value &val) {
                 Link_Map::add(key);
-                cache[key] = val;
+                cache.insert(key, val);
             }
 
             void refresh(int key, const Value &val) {
