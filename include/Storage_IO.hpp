@@ -260,7 +260,7 @@ public:
 			file.write(reinterpret_cast<char *> (&nxt), sizeof(int));
 			file.seekp(pos);
 			file.write(reinterpret_cast<char *> (const_cast<Value *> (&val)), sizeof(Value));
-		}make
+		}
 		//LRU.create(num);
 		return num;
 	}
