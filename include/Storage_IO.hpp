@@ -260,25 +260,25 @@ public:
 			file.write(reinterpret_cast<char *> (&nxt), sizeof(int));
 			file.seekp(pos);
 			file.write(reinterpret_cast<char *> (const_cast<Value *> (&val)), sizeof(Value));
-		}
+		}make
 		//LRU.create(num);
 		return num;
 	}
 
 	void write(int num, const Value &val){
-		//LRU.push(num, val);
-        file.seekp(get_pos(num));
-		file.write(reinterpret_cast<char *> (const_cast<Value *> (&val)), sizeof(Value));
+		LRU.push(num, val);
+        // file.seekp(get_pos(num));
+		// file.write(reinterpret_cast<char *> (const_cast<Value *> (&val)), sizeof(Value));
 	}
 
 	void read(int num, Value &val){
-		//LRU.get(num, val);
-        file.seekg(get_pos(num));
-		file.read(reinterpret_cast<char *> (&val), sizeof(Value));
+		LRU.get(num, val);
+        // file.seekg(get_pos(num));
+		// file.read(reinterpret_cast<char *> (&val), sizeof(Value));
 	}
 
 	void erase(int num){
-        //LRU.erase(num);
+        LRU.erase(num);
 		int pos = get_pos(num), nxt;
 		file.seekg(0);
 		file.read(reinterpret_cast<char *> (&nxt), sizeof(int));
