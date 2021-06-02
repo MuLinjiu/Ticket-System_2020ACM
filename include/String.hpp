@@ -64,6 +64,10 @@ public:
 		return *this = *this + other;
 	}
 
+	operator string () const{
+		return string(str) ;
+	}
+
 	bool operator==(const String &other) const{
 		if (strlen(str) != strlen(other.str)) return false;
 		for (const char *i = str, *j = other.str; *i && *j; ++i, ++j)

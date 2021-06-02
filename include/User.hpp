@@ -8,6 +8,7 @@
 #include "Date.hpp"
 #include "Train.hpp"
 #include "Order.hpp"
+#include <unordered_map>
 using namespace std;
 //using namespace sjtu;
 class USER_ALL{
@@ -36,7 +37,9 @@ private:
     BpTree<String, int> user_tree;
     Storage_IO<user> user_data;
     BpTree<pair<String, int>, Order> order_tree;
-    sjtu::map<String, bool> user_online;
+    //sjtu::map<String, bool> user_online;
+    //HashMap<19260817,string,int>user_online;
+     std::unordered_map<string,int>user_online;
 
     template<class T, class U>
     static bool equal(const pair<T, U> &lhs, const pair<T, U> &rhs) {
@@ -47,37 +50,38 @@ public:
     USER_ALL() : user_tree("user"), user_data("data_user.dat"), order_tree("order") {}
 
     bool checkadduser(const String &cur,const String &us,int p){
-        if(user_online.find(cur) == user_online.end())return false;
-        vector<int> possibleoffset = user_tree.search(cur);
+        if(user_online.count(cur) ==  0)return false;
+        //vector<int> possibleoffset = user_tree.search(cur);
         vector<int> possibleoffset2 = user_tree.search(us);
-        if(possibleoffset.empty() || !possibleoffset2.empty())return false;
-        user cur_user;
-        user_data.read(possibleoffset[0], cur_user);
-        if(cur_user.privilege <= p)return false;
+        if(!possibleoffset2.empty())return false;
+        // user cur_user;
+        // user_data.read(possibleoffset[0], cur_user);
+        if(user_online[cur] <= p)return false;
         else return true;
     }
 
     bool checkquerypofile(const String &cur,const String &us){
-        if(user_online.find(cur) == user_online.end())return false;
-        vector<int>possibleoffset = user_tree.search(cur);
+        if(user_online.count(cur) ==  0)return false;
+        //vector<int>possibleoffset = user_tree.search(cur);
         vector<int>possibleoffset2 = user_tree.search(us);
-        if(possibleoffset.empty() || possibleoffset2.empty())return false;
+        if(possibleoffset2.empty())return false;
         if(us == cur)return true;
         user cur_user,query_user;
-        user_data.read(possibleoffset[0],cur_user),user_data.read(possibleoffset2[0],query_user);
-        if(cur_user.privilege <= query_user.privilege)return false;
+        user_data.read(possibleoffset2[0],query_user);
+        if(user_online[cur] <= query_user.privilege)return false;
         else return true;
     }
 
     bool checkmodifypofile(const String &cur,const String &us,int c){
-        if(user_online.find(cur) == user_online.end())return false;
-        vector<int>possibleoffset = user_tree.search(cur);
+        if(user_online.count(cur) ==  0)return false;
+        //vector<int>possibleoffset = user_tree.search(cur);
         vector<int>possibleoffset2 = user_tree.search(us);
-        if(possibleoffset.empty() || possibleoffset2.empty())return false;
+        if(possibleoffset2.empty())return false;
         user cur_user,query_user;
-        user_data.read(possibleoffset[0],cur_user),user_data.read(possibleoffset2[0],query_user);
-        if(us == cur && cur_user.privilege > c)return true;
-        if(cur_user.privilege <= query_user.privilege || cur_user.privilege <= c)return false;
+        int x = user_online[cur];
+        user_data.read(possibleoffset2[0],query_user);
+        if(us == cur && x > c)return true;
+        if(x <= query_user.privilege || x <= c)return false;
         else return true;
     }
 
@@ -94,11 +98,11 @@ public:
         if(possibleoffset.empty()){
             throw("cannot find the user");
         }else{
-            if(user_online.find(userna) == user_online.end()) {
+            if(user_online.count(userna) ==  0) {
                 user cur_user;
                 user_data.read(possibleoffset[0], cur_user);
                 if(cur_user.password == pas) {
-                    user_online[userna] = true;
+                    user_online[userna] = cur_user.privilege;
                 }else throw("wrong pass");
             }else {
                 throw("user is online");
@@ -107,8 +111,9 @@ public:
     }
 
     void logout(const String & usn){
-        if(user_online.find(usn) == user_online.end()) throw("user haven't login");
-        else user_online.erase(user_online.find(usn));
+        if(user_online.count(usn) ==  0) throw("user haven't login");
+        // else user_online.erase(user_online.find(usn));
+        else user_online.erase(usn);
     }
 
     void query_pofile(const String & a){
@@ -139,7 +144,7 @@ public:
     void buy_ticket(TRAIN_ALL &train, const String &u, const String &id, const Date &d, int n, const String &f, const String &t, bool q){
         vector<int> users = user_tree.search(u);
         if (users.empty()) throw("cannot find the user");
-        if (user_online.find(u) == user_online.end()) throw("user haven't login");
+        if (user_online.count(u) ==  0) throw("user haven't login");
         Order res = train.query_ticket(id, d, f, t, n);
         if (res.num < n && !q) throw("no ticket");
         user cur_user;
@@ -160,7 +165,7 @@ public:
     }
 
     void query_order(const String &u){
-        if (user_online.find(u) == user_online.end()) throw("user haven't login");
+        if (user_online.count(u) ==  0) throw("user haven't login");
         vector<Order> res = order_tree.search(make_pair(u, 0), equal);
         cout << res.size() << endl;
         for (int i = (int)res.size() - 1; i >= 0; --i)
@@ -170,7 +175,7 @@ public:
     void refund_ticket(TRAIN_ALL &train, const String &u, int n = 1){
         vector<int> users = user_tree.search(u);
         if (users.empty()) throw("cannot find the user");
-        if (user_online.find(u) == user_online.end()) throw("user haven't login");
+        if (user_online.count(u) ==  0) throw("user haven't login");
         user cur_user;
         user_data.read(users[0], cur_user);
         n = cur_user.num_order - n + 1;
