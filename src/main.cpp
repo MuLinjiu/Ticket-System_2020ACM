@@ -12,12 +12,8 @@ using namespace std;
 USER_ALL user_all;
 TRAIN_ALL trainAll;
 
-struct node {
-    int x, y;
-};
-
 int main(){
-    std::ios::sync_with_stdio(false);
-    while(run_program()) {}
+     std::ios::sync_with_stdio(false);
+     while(run_program()) {}
 	return 0;
 }

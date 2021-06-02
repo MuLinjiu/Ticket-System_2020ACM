@@ -115,7 +115,7 @@ private:
                 pos.insert(key, no);
                 if (++num > limit){
                     int tmp = head->index;
-                    remove(head->index);
+                    Link_Map::remove(head->index);
                     return tmp;
                 }
                 return 0;
@@ -140,10 +140,12 @@ private:
             explicit Cached_Link_Map(Storage_IO<Value> *opt_) : opt(opt_), Link_Map() {}
 
             ~Cached_Link_Map(){
+                opt->file.open(opt->file_name, ios::in | ios::out | ios::binary);
                 for (int p = Link_Map::begin(); p; p = Link_Map::nxt(p)){
                     opt->file.seekp(get_pos(p));
-                    opt->file.write(reinterpret_cast<char *> (const_cast<Value *> (&cache[p])), sizeof(Value));
+                    opt->file.write(reinterpret_cast<char *> (&cache[p]), sizeof(Value));
                 }
+                opt->file.close();
             }
 
             void clear() override {
@@ -161,7 +163,7 @@ private:
                 cache.insert(key, val);
                 if (res){
                     opt->file.seekp(get_pos(res));
-                    opt->file.write(reinterpret_cast<char *> (const_cast<Value *> (&cache[res])), sizeof(Value));
+                    opt->file.write(reinterpret_cast<char *> (&cache[res]), sizeof(Value));
                     cache.erase(res);
                 }
             }
@@ -227,7 +229,9 @@ public:
 		}
 	}
 
-	~Storage_IO(){ file.close(); }
+	~Storage_IO(){
+	    file.close();
+	}
 
 	void clear(){
 	    LRU.clear();
