@@ -1,7 +1,0 @@
-[
-{
-  "directory": "/mnt/d/HXL/FIRST(2)/Ticket-System2020ACM/build",
-  "command": "/bin/x86_64-linux-gnu-g++-9   -I\"/mnt/d/HXL/FIRST(2)/Ticket-System2020ACM/include\"     -Ofast  -g   -std=gnu++14 -o CMakeFiles/code.dir/src/main.cpp.o -c \"/mnt/d/HXL/FIRST(2)/Ticket-System2020ACM/src/main.cpp\"",
-  "file": "/mnt/d/HXL/FIRST(2)/Ticket-System2020ACM/src/main.cpp"
-}
-]

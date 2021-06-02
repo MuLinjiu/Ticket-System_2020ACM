@@ -1,3 +1,0 @@
-/mnt/d/HXL/FIRST(2)/Ticket-System2020ACM/build/CMakeFiles/rebuild_cache.dir
-/mnt/d/HXL/FIRST(2)/Ticket-System2020ACM/build/CMakeFiles/edit_cache.dir
-/mnt/d/HXL/FIRST(2)/Ticket-System2020ACM/build/CMakeFiles/code.dir
