@@ -32,7 +32,6 @@ public:
                 q = p->nxt;
                 delete p;
             }
-            head[i] = nullptr;
         }
     }
 
@@ -42,6 +41,7 @@ public:
                 q = p->nxt;
                 delete p;
             }
+            head[i] = nullptr;
         }
     }
 
@@ -53,11 +53,13 @@ public:
         return 0;
     }
 
-    Value &operator[](const Key &key) const{
+    Value &operator[](const Key &key){
         size_t pos = gethash(key);
         for (node *p = head[pos]; p; p = p->nxt){
             if (p->key == key) return p->val;
         }
+        insert(key, Value());
+        return pos[head]->val;
     }
 
     void insert(const Key &key, const Value &val){

@@ -8,8 +8,7 @@ using namespace std;
 
 template<class Value>
 class Storage_IO{
-    class LRU;
-    friend LRU;
+    friend class LRU;
 private:
     string file_name;
 	fstream file;
@@ -32,20 +31,51 @@ private:
 
             struct node {
                 int index;
-                node *prev = nullptr;
-                node *next = nullptr;
+                node *prev = nullptr, *next = nullptr;
 
                 node(const int &index_, node *prev = nullptr, node *next = nullptr)
                     : index(index_), prev(prev), next(next) {}
             };
 
             node *head, *end;
-            int size = 0;
+            int num;
             HashMap<hashsize, int, node *> pos;
+
+            void remove(node *no){
+                if (no == end) {
+                    end = end->prev;
+                    if (end) end->next = nullptr;
+                    else head = end;
+                }
+                else if (no == head) {
+                    head = head->next;
+                    if (head) head->prev = nullptr;
+                    else end = head;
+                }
+                else {
+                    no->prev->next = no->next;
+                    no->next->prev = no->prev;
+                }
+                no->prev = no->next = nullptr;
+            }
+
+            void add(node *no){
+                if (end != nullptr) {
+                    end->next = no;
+                    end->next->prev = end;
+                    end->next->next = nullptr;
+                    end = end->next;
+                }
+                if (head == nullptr) {
+                    end = head = no;
+                    head->next = nullptr;
+                    head->prev = nullptr;
+                }
+            }
 
         public:
 
-            Link_Map() : head(nullptr), end(nullptr) {}
+            Link_Map() : num(0), head(nullptr), end(nullptr) {}
 
             virtual ~Link_Map() {
                 for (node *p = head, *q; p; p = q) {
@@ -59,51 +89,41 @@ private:
                     q = p->next;
                     delete p;
                 }
-                head = end = nullptr, size = 0;
+                head = end = nullptr, num = 0;
                 pos.clear();
+            }
+
+            virtual size_t size() { return num; }
+
+            virtual int begin() { return head ? head->index : 0; }
+
+            virtual int nxt(int key) {
+                node *no = pos[key];
+                return no->next ? no->next->index : 0;
             }
 
             virtual void remove(int key) {
                 node *no = pos[key];
-                if (no == end) {
-                    node *tmp = end;
-                    end = end->prev;
-                    delete tmp;
-                    if (end) end->next = nullptr;
-                    else head = end;
-                }
-                else if (no == head) {
-                    node *tmp = head;
-                    head = head->next;
-                    delete tmp;
-                    if (head) head->prev = nullptr;
-                    else end = head;
-                }
-                else {
-                    no->prev->next = no->next;
-                    no->next->prev = no->prev;
-                    delete no;
-                }
+                remove(no), delete no;
                 pos.erase(key);
-                size--;
+                num--;
             }
 
-            virtual void add(int key) {
+            virtual int add(int key) {
                 node *no = new node(key);
-                if (end != nullptr) {
-                    end->next = no;
-                    end->next->prev = end;
-                    end->next->next = nullptr;
-                    end = end->next;
-                }
-                if (head == nullptr) {
-                    end = head = no;
-                    head->next = nullptr;
-                    head->prev = nullptr;
-                }
+                add(no);
                 pos.insert(key, no);
-                size++;
-                if (size > limit) remove(head->index);
+                if (++num > limit){
+                    int tmp = head->index;
+                    remove(head->index);
+                    return tmp;
+                }
+                return 0;
+            }
+
+            virtual void refresh(int key) {
+                node *no = pos[key];
+                remove(no), add(no);
             }
 
             virtual bool find(int key) const {
@@ -113,10 +133,18 @@ private:
 
         class Cached_Link_Map : public Link_Map {
         private:
+            Storage_IO<Value> *opt;
             HashMap<hashsize, int, Value> cache;
 
         public:
-            Cached_Link_Map() : Link_Map() {}
+            explicit Cached_Link_Map(Storage_IO<Value> *opt_) : opt(opt_), Link_Map() {}
+
+            ~Cached_Link_Map(){
+                for (int p = Link_Map::begin(); p; p = Link_Map::nxt(p)){
+                    opt->file.seekp(get_pos(p));
+                    opt->file.write(reinterpret_cast<char *> (const_cast<Value *> (&cache[p])), sizeof(Value));
+                }
+            }
 
             void clear() override {
                 Link_Map::clear();
@@ -129,41 +157,52 @@ private:
             }
 
             void add(int key, const Value &val) {
-                Link_Map::add(key);
+                int res = Link_Map::add(key);
                 cache.insert(key, val);
+                if (res){
+                    opt->file.seekp(get_pos(res));
+                    opt->file.write(reinterpret_cast<char *> (const_cast<Value *> (&cache[res])), sizeof(Value));
+                    cache.erase(res);
+                }
             }
 
-            void refresh(int key, const Value &val) {
-                remove(key), add(key, val);
-            }
+            const Value &get(int key) { return cache[key]; }
 
-            Value get(int key) const { return cache[key]; }
+            void modify(int key, const Value &val) { cache[key] = val; }
 
         } cache;
 
+        Storage_IO<Value> *opt;
+
     public:
-	    LRU() = default;
+	    explicit LRU(Storage_IO<Value> *opt_) : opt(opt_), cache(opt_) {}
 
 	    void clear() { queue.clear(), cache.clear(); }
 
+	    void create(int key) { queue.add(key); }
+
 	    void push(int key, const Value &val){
-	        if (cache.find(key)) cache.refresh(key, val);
+	        if (cache.find(key)) cache.modify(key, val), cache.refresh(key);
 	        else if (queue.find(key)){
 	            queue.remove(key), cache.add(key, val);
-	        } else queue.add(key);
+	        } else {
+	            queue.add(key);
+                opt->file.seekp(get_pos(key));
+                opt->file.write(reinterpret_cast<char *> (const_cast<Value *> (&val)), sizeof(Value));
+	        }
 	    }
 
-	    void get(Storage_IO<Value> &opt, int key, Value &val){
-	        if (cache.find(key)) val = cache.get(key), cache.refresh(key, val);
+	    void get(int key, Value &val){
+	        if (cache.find(key)) val = cache.get(key), cache.refresh(key);
 	        else if (queue.find(key)) {
 	            queue.remove(key);
-                opt.file.seekg(get_pos(key));
-                opt.file.read(reinterpret_cast<char *> (&val), sizeof(Value));
+                opt->file.seekg(get_pos(key));
+                opt->file.read(reinterpret_cast<char *> (&val), sizeof(Value));
                 cache.add(key, val);
             } else {
 	            queue.add(key);
-                opt.file.seekg(get_pos(key));
-                opt.file.read(reinterpret_cast<char *> (&val), sizeof(Value));
+                opt->file.seekg(get_pos(key));
+                opt->file.read(reinterpret_cast<char *> (&val), sizeof(Value));
 	        }
 	    }
 
@@ -175,9 +214,9 @@ private:
     } LRU;
 
 public:
-	Storage_IO() = default;
+	Storage_IO() : LRU(this) {}
 
-	Storage_IO(string file_name) : file_name(file_name){
+	explicit Storage_IO(string file_name) : file_name(file_name), LRU(this){
 		file.open(file_name, ios::in | ios::out | ios::binary);
 		if (!file){
 			file.open(file_name, ios::out | ios::binary);
@@ -218,21 +257,20 @@ public:
 			file.seekp(pos);
 			file.write(reinterpret_cast<char *> (const_cast<Value *> (&val)), sizeof(Value));
 		}
-		LRU.push(num, val);
+		LRU.create(num);
 		return num;
 	}
 
 	void write(int num, const Value &val){
-		file.seekp(get_pos(num));
-		file.write(reinterpret_cast<char *> (const_cast<Value *> (&val)), sizeof(Value));
 		LRU.push(num, val);
 	}
 
 	void read(int num, Value &val){
-		LRU.get(*this, num, val);
+		LRU.get(num, val);
 	}
 
 	void erase(int num){
+        LRU.erase(num);
 		int pos = get_pos(num), nxt;
 		file.seekg(0);
 		file.read(reinterpret_cast<char *> (&nxt), sizeof(int));
@@ -240,7 +278,6 @@ public:
 		file.write(reinterpret_cast<char *> (&nxt), sizeof(int));
 		file.seekp(0);
 		file.write(reinterpret_cast<char *> (&num), sizeof(int));
-		LRU.erase(num);
 	}
 
 };
