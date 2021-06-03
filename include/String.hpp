@@ -16,7 +16,7 @@ class String{
 	}
 
 private:
-	char str[36];
+	char str[31];
 
 public:
 	String() { str[0] = '\0'; }
