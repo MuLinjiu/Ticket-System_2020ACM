@@ -1,6 +1,7 @@
 #ifndef TICKET_SYSTEM_2020ACM_STORAGE_IO_HPP
 #define TICKET_SYSTEM_2020ACM_STORAGE_IO_HPP
 
+#define Cached
 #include <fstream>
 #include <string>
 #include "HashMap.hpp"
@@ -23,8 +24,8 @@ private:
 
 	class LRU {
 	private:
-        static const int limit = 293;
-        static const int hashsize = 397;
+        static const int limit = 119;
+        static const int hashsize = 131;
 
         class Link_Map {
         private:
@@ -261,24 +262,36 @@ public:
 			file.seekp(pos);
 			file.write(reinterpret_cast<char *> (const_cast<Value *> (&val)), sizeof(Value));
 		}
-		//LRU.create(num);
+#ifdef Cached
+		LRU.create(num);
+#endif
 		return num;
 	}
 
 	void write(int num, const Value &val){
+#ifdef Cached
 		LRU.push(num, val);
-        // file.seekp(get_pos(num));
-		// file.write(reinterpret_cast<char *> (const_cast<Value *> (&val)), sizeof(Value));
+#endif
+#ifndef Cached
+         file.seekp(get_pos(num));
+		 file.write(reinterpret_cast<char *> (const_cast<Value *> (&val)), sizeof(Value));
+#endif
 	}
 
 	void read(int num, Value &val){
+#ifdef Cached
 		LRU.get(num, val);
-        // file.seekg(get_pos(num));
-		// file.read(reinterpret_cast<char *> (&val), sizeof(Value));
+#endif
+#ifndef Cached
+         file.seekg(get_pos(num));
+		 file.read(reinterpret_cast<char *> (&val), sizeof(Value));
+#endif
 	}
 
 	void erase(int num){
+#ifdef Cached
         LRU.erase(num);
+#endif
 		int pos = get_pos(num), nxt;
 		file.seekg(0);
 		file.read(reinterpret_cast<char *> (&nxt), sizeof(int));
