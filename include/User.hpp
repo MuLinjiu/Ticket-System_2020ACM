@@ -38,7 +38,7 @@ private:
     BpTree<String, int> user_tree;
     Storage_IO<user> user_data;
     BpTree<pair<String, int>, Order> order_tree;
-    //sjtu::map<String, bool> user_online;
+//    sjtu::map<String, bool> user_online;
     HashMap<19260817, string, int>user_online;
 
     template<class T, class U>
