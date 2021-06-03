@@ -23,8 +23,8 @@ private:
 
 	class LRU {
 	private:
-        static const int limit = 59;
-        static const int hashsize = 71;
+        static const int limit = 293;
+        static const int hashsize = 397;
 
         class Link_Map {
         private:

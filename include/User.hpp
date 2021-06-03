@@ -38,8 +38,8 @@ private:
     BpTree<String, int> user_tree;
     Storage_IO<user> user_data;
     BpTree<pair<String, int>, Order> order_tree;
-//    sjtu::map<String, bool> user_online;
-    HashMap<19260817, string, int>user_online;
+    sjtu::map<String, int> user_online;
+//    HashMap<19260817, string, int> user_online;
 
     template<class T, class U>
     static bool equal(const pair<T, U> &lhs, const pair<T, U> &rhs) {
@@ -113,7 +113,7 @@ public:
     void logout(const String & usn){
         if(user_online.count(usn) ==  0) throw("user haven't login");
         // else user_online.erase(user_online.find(usn));
-        else user_online.erase(usn);
+        else user_online.erase(user_online.find(usn));
     }
 
     void query_pofile(const String & a){
