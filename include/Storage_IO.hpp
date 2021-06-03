@@ -274,7 +274,7 @@ public:
 #endif
 #ifndef Cached
          file.seekp(get_pos(num));
-		 file.write(reinterpret_cast<char *> (const_cast<Value *> (&val)), sizeof(Value));
+         file.write(reinterpret_cast<char *> (const_cast<Value *> (&val)), sizeof(Value));
 #endif
 	}
 
@@ -284,7 +284,7 @@ public:
 #endif
 #ifndef Cached
          file.seekg(get_pos(num));
-		 file.read(reinterpret_cast<char *> (&val), sizeof(Value));
+         file.read(reinterpret_cast<char *> (&val), sizeof(Value));
 #endif
 	}
 

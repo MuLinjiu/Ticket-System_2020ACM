@@ -12,16 +12,16 @@ using namespace std;
 template<class Key, class Value>
 class BpTree{
 private:
-    static const int M = 200; // Maximum number of fans out
+    static const int M = 250; // Maximum number of fans out
     struct node{
         int num_keys; // 1-based
         bool is_leaf;
         int prec, succ;	// if node is leaf
-        Key keys[M + 1]; // 0-based
+        Key keys[M + 3]; // 0-based
         struct birec{
             int child;
             Value val;
-        } birec[M + 1]; // inner node: child; leaf: val
+        } birec[M + 3]; // inner node: child; leaf: val
 
         node() : num_keys(0), is_leaf(false), prec(0), succ(0){
             memset(birec, 0, sizeof(birec));
