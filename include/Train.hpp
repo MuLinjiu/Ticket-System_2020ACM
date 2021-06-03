@@ -257,34 +257,22 @@ public:
                 if (i < x.stationNum) cur += x.travelTimes[i];
                 int start_num = i;
                 for (i++; i <= x.stationNum; ++i){
-                    auto res2 = train_stations.search(make_pair(x.stations[i], String()), equal);
+                    auto res1 = train_stations.search(make_pair(x.stations[i], String()), equal);
+                    auto res2 = train_stations.search(make_pair(t, String()), equal);
                     valid.clear();
-                    for (const auto& index2 : res2){
-                        train y; train_data.read(index2.index, y);
-                        if (!y.released) continue;
-                        Date cur2 = y.departTimes[1];
-                        Date start_time2, end_time2, duration2, d2;
-                        int l, r;
-                        bool aboard = false, ashore = false;
-                        vector<int> ret2; daily s2;
-                        for (int j = 1; j <= y.stationNum; ++j){
-                            if (y.stations[j] == t){
-                                ashore = true, end_time2 = cur2, r = j; break;
+                    Date d2;
+                    for (int u = 0, v = 0; u < res1.size(); ++u){
+                        while (v < res2.size() && res2[v].trainID < res1[u].trainID) ++v;
+                        if (v < res2.size() && res2[v].trainID == res1[u].trainID){
+                            if (res1[u].stationID < res2[v].stationID && res1[u].r >= cur){
+                                if (res1[u].l >= cur)
+                                    d2 = res1[u].l.getdate();
+                                else d2 = res1[u].l.gettime() >= cur.gettime() ? cur.getdate() : cur.getdate() + 1440;
+                                train y; train_data.read(res1[u].index, y);
+                                int cost_time = y.departTimes[res2[v].stationID-1] + y.travelTimes[res2[v].stationID-1] - y.departTimes[res1[u].stationID];
+                                Date start = y.departTimes[res1[u].stationID].setdate(d2), end = start + cost_time;
+                                valid.push_back((ticket){y.trainID, start, end, x.stations[i], t, 0, cost_time, y.prices[res2[v].stationID] - y.prices[res1[u].stationID], (d2 - res1[u].l.getdate()) / 1440});
                             }
-                            if (j > 1 && j < y.stationNum) cur2 += y.stopoverTimes[j];
-                            if (y.stations[j] == x.stations[i]){
-                                aboard = true, duration2 = cur2;
-                                if (y.saleDate.second + cur2 < cur) break;
-                                if (y.saleDate.first + cur2 >= cur)
-                                    d2 = (y.saleDate.first + cur2).getdate();
-                                else d2 = cur2.gettime() >= cur.gettime() ? cur.getdate() : cur.getdate() + 1440;
-                                cur2.setdate(d2), start_time2 = cur2, l = j;
-                            }
-                            if (j < y.stationNum) cur2 += y.travelTimes[j];
-                        }
-                        if (aboard && ashore){
-                            int cost_time2 = end_time2 - start_time2;
-                            valid.push_back((ticket){y.trainID, start_time2, end_time2, x.stations[i], t, 0, cost_time2, y.prices[r] - y.prices[l], (d2 - (duration2.getdate() + y.saleDate.first)) / 1440});
                         }
                     }
                     sort(valid.begin(), valid.end(), p == "time" ? cmp_by_standard_time : cmp_by_cost);
