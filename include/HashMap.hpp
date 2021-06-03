@@ -22,9 +22,7 @@ private:
     }
 
 public:
-    HashMap() {
-        for (int i = 0; i < MOD; ++i) head[i] = nullptr;
-    }
+    HashMap() { memset(head, 0, sizeof(head)); }
 
     ~HashMap(){
         for (int i = 0; i < MOD; ++i){

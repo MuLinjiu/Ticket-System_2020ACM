@@ -1,5 +1,6 @@
 #ifndef MAP_HPP_USER_HPP
 #define MAP_HPP_USER_HPP
+
 #include <cstring>
 #include <iostream>
 #include<vector>
@@ -8,9 +9,9 @@
 #include "Date.hpp"
 #include "Train.hpp"
 #include "Order.hpp"
-#include <unordered_map>
 using namespace std;
 //using namespace sjtu;
+
 class USER_ALL{
 private:
     struct user{
@@ -38,8 +39,7 @@ private:
     Storage_IO<user> user_data;
     BpTree<pair<String, int>, Order> order_tree;
     //sjtu::map<String, bool> user_online;
-    //HashMap<19260817,string,int>user_online;
-     std::unordered_map<string,int>user_online;
+    HashMap<19260817, string, int>user_online;
 
     template<class T, class U>
     static bool equal(const pair<T, U> &lhs, const pair<T, U> &rhs) {
